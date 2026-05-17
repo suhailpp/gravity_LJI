@@ -161,37 +161,15 @@ function Rules() {
   );
 }
 
-// ─── Inline mini rule relationship map for accordion right panel ───
-function RuleMiniMap({ rule }) {
-  const codeToBrand = {MA:'Marriott Bonvoy', CA:'Careem', NO:'Noon', CF:'Cult.fit', BM:'BookMyShow', EM:'Emirates', CH:'Chalhoub'};
-  const codeToSignal = {MA:'trending', CA:'fast', NO:'losing', CF:'elite', BM:'expiring', EM:'stable', CH:'stable'};
-  const offers = rule.offerList || [];
-  const nodes = offers.map((o, i) => ({
-    id: i + 1, code: o.c, brand: codeToBrand[o.c], label: o.n,
-    signal: codeToSignal[o.c] || 'stable', health: o.h, status: 'live'
-  }));
-  return (
-    <RelationshipGraph
-      nodes={nodes}
-      edges={[]}
-      center={{kind:'rule', label:`${rule.offers} offer${rule.offers!==1?'s':''}`, count: rule.name}}
-      height={280}
-      emptyMsg="Not enough offers using this rule set to show a map"
-    />
-  );
-}
-
 // ─── Rule spoke-hub map ───
 function RuleMap({ rule, onClose }) {
-  const codeToBrand = {MA:'Marriott Bonvoy', CA:'Careem', NO:'Noon', CF:'Cult.fit', BM:'BookMyShow', EM:'Emirates', CH:'Chalhoub'};
-  const codeToSignal = {MA:'trending', CA:'fast', NO:'losing', CF:'elite', BM:'expiring', EM:'stable', CH:'stable'};
   const offers = rule.offerList || [];
   const nodes = offers.map((o, i) => ({
     id: i + 1,
     code: o.c,
-    brand: codeToBrand[o.c],
+    brand: CODE_TO_BRAND[o.c],
     label: o.n,
-    signal: codeToSignal[o.c] || 'stable',
+    signal: CODE_TO_SIGNAL[o.c] || 'stable',
     health: o.h
   }));
 
