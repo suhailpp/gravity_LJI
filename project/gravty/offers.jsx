@@ -94,31 +94,6 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
     return [{i:'Edit',ic:'Edit'},{i:'More',ic:'MoreHorizontal'}];
   };
 
-  // Compact half-pie health indicator for table rows
-  const MiniHealth = ({ value, delta }) => {
-    if (value == null) return <span style={{color:'var(--text-muted)', fontSize:12}}>—</span>;
-    const hc = getHealthColor(value);
-    const r = 30, sw = 7;
-    const circ = Math.PI * r;
-    const pct = Math.max(0, Math.min(100, value)) / 100;
-    return (
-      <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:2}}>
-        <svg width="80" height="40" viewBox="0 0 80 40" style={{overflow:'visible', display:'block'}}>
-          <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke="#252A35" strokeWidth={sw} strokeLinecap="round"/>
-          <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke={hc} strokeWidth={sw} strokeLinecap="round"
-                strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
-                style={{transition:'stroke-dashoffset .5s ease'}}/>
-        </svg>
-        <span style={{fontFamily:'Sora, sans-serif', fontWeight:700, fontSize:16, color:hc, lineHeight:1}}>{value}</span>
-        {delta != null && delta !== 0 && (
-          <span style={{fontSize:11, fontWeight:500, color: delta > 0 ? '#2DD4A0' : '#F26B6B', lineHeight:1}}>
-            {delta > 0 ? '↑' : '↓'}{Math.abs(delta)}
-          </span>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="offers-screen">
       {/* Fixed header + tabs */}
@@ -308,16 +283,6 @@ function FilterPanel({ open, onClose, pending, toggleIn, clearAll, pendingCount,
   const regions   = ['Dubai','Abu Dhabi','Sharjah','All UAE','DXB','AUH'];
   const statuses  = ['Live','Scheduled','Draft','Paused','Ended'];
 
-  const Check = ({k, val}) => (
-    <div className={"filter-check " + (pending[k].has(val) ? 'on' : '')} onClick={()=>toggleIn(k, val)}>
-      <span className="box"><Icon name="Check" size={11} stroke={2.5}/></span>
-      {val}
-    </div>
-  );
-  const Chip = ({k, val}) => (
-    <button className={"filter-pill " + (pending[k].has(val) ? 'active' : '')} onClick={()=>toggleIn(k, val)}>{val}</button>
-  );
-
   return (
     <>
       <div className={"filter-scrim " + (open?'open':'')} onClick={onClose}/>
@@ -334,23 +299,23 @@ function FilterPanel({ open, onClose, pending, toggleIn, clearAll, pendingCount,
         <div className="filter-panel-body">
           <div className="filter-section">
             <h6>Sponsor</h6>
-            <div className="col">{sponsors.map(s => <Check key={s} k="sponsor" val={s}/>)}</div>
+            <div className="col">{sponsors.map(s => <FilterCheck key={s} label={s} active={pending.sponsor.has(s)} onClick={()=>toggleIn('sponsor', s)}/>)}</div>
           </div>
           <div className="filter-section">
             <h6>Offer Type</h6>
-            <div className="col">{types.map(t => <Check key={t} k="type" val={t}/>)}</div>
+            <div className="col">{types.map(t => <FilterCheck key={t} label={t} active={pending.type.has(t)} onClick={()=>toggleIn('type', t)}/>)}</div>
           </div>
           <div className="filter-section">
             <h6>Tier</h6>
-            <div className="row gap-6 wrap">{tiers.map(t => <Chip key={t} k="tier" val={t}/>)}</div>
+            <div className="row gap-6 wrap">{tiers.map(t => <FilterChip key={t} label={t} active={pending.tier.has(t)} onClick={()=>toggleIn('tier', t)}/>)}</div>
           </div>
           <div className="filter-section">
             <h6>Region</h6>
-            <div className="col">{regions.map(r => <Check key={r} k="region" val={r}/>)}</div>
+            <div className="col">{regions.map(r => <FilterCheck key={r} label={r} active={pending.region.has(r)} onClick={()=>toggleIn('region', r)}/>)}</div>
           </div>
           <div className="filter-section">
             <h6>Status</h6>
-            <div className="row gap-6 wrap">{statuses.map(s => <Chip key={s} k="status" val={s}/>)}</div>
+            <div className="row gap-6 wrap">{statuses.map(s => <FilterChip key={s} label={s} active={pending.status.has(s)} onClick={()=>toggleIn('status', s)}/>)}</div>
           </div>
         </div>
 
@@ -391,37 +356,4 @@ function EmptyOffers({ tab, onCreate, onClear }) {
   );
 }
 
-// ─── Empty state SVG art (line geometric) ───
-function EmptyArt({ kind }) {
-  const stroke = "var(--text-muted)";
-  if (kind === 'stage') return (
-    <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
-      <rect x="20" y="22" width="22" height="36" rx="3" stroke={stroke} strokeWidth="1.5"/>
-      <rect x="50" y="14" width="22" height="44" rx="3" stroke={stroke} strokeWidth="1.5"/>
-      <rect x="80" y="30" width="22" height="28" rx="3" stroke={stroke} strokeWidth="1.5"/>
-      <line x1="10" y1="62" x2="112" y2="62" stroke="var(--accent-gold)" strokeWidth="1" strokeDasharray="3 4"/>
-      <circle cx="61" cy="20" r="2" fill="var(--accent-gold)"/>
-    </svg>
-  );
-  if (kind === 'funnel') return (
-    <svg width="100" height="80" viewBox="0 0 100 80" fill="none">
-      <path d="M15 14h70l-25 30v22l-20-8v-14z" stroke={stroke} strokeWidth="1.5" strokeLinejoin="round"/>
-      <circle cx="50" cy="68" r="2" fill="var(--accent-gold)"/>
-    </svg>
-  );
-  if (kind === 'drafts') return (
-    <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
-      <rect x="30" y="14" width="60" height="58" rx="4" stroke={stroke} strokeWidth="1.5"/>
-      <line x1="40" y1="28" x2="80" y2="28" stroke={stroke} strokeWidth="1.5"/>
-      <line x1="40" y1="40" x2="80" y2="40" stroke={stroke} strokeWidth="1.5" strokeDasharray="3 3"/>
-      <line x1="40" y1="52" x2="65" y2="52" stroke={stroke} strokeWidth="1.5" strokeDasharray="3 3"/>
-      <circle cx="86" cy="60" r="6" stroke="var(--accent-gold)" strokeWidth="1.5"/>
-      <line x1="83" y1="60" x2="89" y2="60" stroke="var(--accent-gold)"/>
-      <line x1="86" y1="57" x2="86" y2="63" stroke="var(--accent-gold)"/>
-    </svg>
-  );
-  return null;
-}
-
 window.OfferList = OfferList;
-window.EmptyArt = EmptyArt;

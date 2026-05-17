@@ -1,6 +1,30 @@
 // ============ GRAVTY · Shared UI ============
 const { useState, useEffect, useRef, useMemo, useLayoutEffect } = React;
 
+// ─── Design Tokens ─────────────────────────
+const COLORS = {
+  bgBase:        '#0A0C10',
+  bgSurface:     '#111318',
+  bgElevated:    '#181C24',
+  border:        '#252A35',
+  textPrimary:   '#F0F2F7',
+  textSecondary: '#8892A4',
+  textMuted:     '#4A5568',
+  gold:          '#D4A853',
+  green:         '#2DD4A0',
+  amber:         '#F59E0B',
+  orange:        '#F97316',
+  red:           '#F26B6B',
+  blue:          '#4A90D9',
+};
+
+const HEALTH_COLOR = (score) => {
+  if (score >= 80) return COLORS.green;
+  if (score >= 60) return COLORS.amber;
+  if (score >= 40) return COLORS.orange;
+  return COLORS.red;
+};
+
 // ─── Icons (inline SVG, lucide-style) ───────────────────
 const Icon = ({ name, size = 16, stroke = 1.6, color }) => {
   const paths = {
@@ -190,6 +214,33 @@ const HealthNumber = ({ value, delta }) => {
 // Back-compat: <HealthScore/> now renders the half pie at md.
 const HealthScore = ({ value, delta, size }) => <HealthDonut value={value} delta={delta} size={size || 'md'}/>;
 
+// ─── MiniHealth ──────────────────────────
+// Compact half-pie + score + delta. Sized for table-row cells
+// (80×40 arc). Use when the full HealthDonut is too tall.
+const MiniHealth = ({ value, delta }) => {
+  if (value == null) return <span style={{color:'var(--text-muted)', fontSize:12}}>—</span>;
+  const hc = getHealthColor(value);
+  const r = 30, sw = 7;
+  const circ = Math.PI * r;
+  const pct = Math.max(0, Math.min(100, value)) / 100;
+  return (
+    <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:2}}>
+      <svg width="80" height="40" viewBox="0 0 80 40" style={{overflow:'visible', display:'block'}}>
+        <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke="#252A35" strokeWidth={sw} strokeLinecap="round"/>
+        <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke={hc} strokeWidth={sw} strokeLinecap="round"
+              strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
+              style={{transition:'stroke-dashoffset .5s ease'}}/>
+      </svg>
+      <span style={{fontFamily:'Sora, sans-serif', fontWeight:700, fontSize:16, color:hc, lineHeight:1}}>{value}</span>
+      {delta != null && delta !== 0 && (
+        <span style={{fontSize:11, fontWeight:500, color: delta > 0 ? '#2DD4A0' : '#F26B6B', lineHeight:1}}>
+          {delta > 0 ? '↑' : '↓'}{Math.abs(delta)}
+        </span>
+      )}
+    </div>
+  );
+};
+
 // ─── Behavioral Signal Badge ────────────
 const SignalBadge = ({ signal }) => {
   if (!signal) return <span style={{color:'var(--text-muted)', fontSize:12}}>—</span>;
@@ -280,10 +331,125 @@ function TablePagination({ total, noun = 'items', pageSize = 25, currentPage = 1
   );
 };
 
+// ─── OfferCard ───────────────────────────
+// Shared offer-summary card. Used on Dashboard zone 3; could be
+// reused anywhere we render an offer in card form. `c` is the
+// offer record (brand, code, name, mech, tiers, region, health,
+// delta, sig, pct, q, cat). Hover reveals quick-action icons.
+function OfferCard({ c, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div className="card hoverable" onClick={onClick}
+         onMouseEnter={() => setHovered(true)}
+         onMouseLeave={() => setHovered(false)}
+         style={{display:'flex', flexDirection:'column', gap:8}}>
+
+      {/* Row 1: Logo + Brand/Category + Signal badge top-right */}
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start'}}>
+        <div style={{display:'flex', gap:10, alignItems:'center'}}>
+          <Logo code={c.code} brand={c.brand}/>
+          <div>
+            <div style={{fontWeight:500, fontSize:13}}>{c.brand}</div>
+            <div className="mute" style={{fontSize:11}}>{c.cat}</div>
+          </div>
+        </div>
+        <SignalBadge signal={c.sig}/>
+      </div>
+
+      {/* Row 2: Offer title */}
+      <div className="sora" style={{fontSize:15, fontWeight:600, lineHeight:1.3, marginTop:4}}>{c.name}</div>
+
+      {/* Row 3: Mechanic + Tier pills */}
+      <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
+        <Pill kind="solid-dark">{c.mech}</Pill>
+        <Pill>{c.tiers}</Pill>
+      </div>
+
+      {/* Row 4: Region */}
+      <div className="mute" style={{fontSize:11}}>{c.region}</div>
+
+      {/* Row 5: Health pie (bottom-left) + Actions (bottom-right) */}
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:6}}>
+        <HealthDonut value={c.health} delta={c.delta} size="md"/>
+        <div style={{opacity: hovered ? 1 : 0, transition:'opacity 0.15s', display:'flex', gap:4}}>
+          <button className="btn icon-only sm ghost" onClick={(e)=>e.stopPropagation()} title="Edit"><Icon name="Edit" size={13}/></button>
+          <button className="btn icon-only sm ghost" onClick={(e)=>e.stopPropagation()} title="More"><Icon name="MoreHorizontal" size={13}/></button>
+        </div>
+      </div>
+
+      {/* Row 6: Redemption bar full width */}
+      <div>
+        <div className="progress" style={{marginBottom:5}}><div style={{width:c.pct+'%'}}/></div>
+        <div style={{display:'flex', justifyContent:'space-between', fontSize:11}}>
+          <span style={{color:'var(--text-primary)', fontWeight:500}}>{c.pct}%</span>
+          <span className="mute mono">{c.q}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── EmptyArt ────────────────────────────
+// Line-geometric SVGs for empty states. Kinds: stage | funnel | drafts.
+// Stays generic; pair with screen-specific copy in the call site.
+function EmptyArt({ kind }) {
+  const stroke = "var(--text-muted)";
+  if (kind === 'stage') return (
+    <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
+      <rect x="20" y="22" width="22" height="36" rx="3" stroke={stroke} strokeWidth="1.5"/>
+      <rect x="50" y="14" width="22" height="44" rx="3" stroke={stroke} strokeWidth="1.5"/>
+      <rect x="80" y="30" width="22" height="28" rx="3" stroke={stroke} strokeWidth="1.5"/>
+      <line x1="10" y1="62" x2="112" y2="62" stroke="var(--accent-gold)" strokeWidth="1" strokeDasharray="3 4"/>
+      <circle cx="61" cy="20" r="2" fill="var(--accent-gold)"/>
+    </svg>
+  );
+  if (kind === 'funnel') return (
+    <svg width="100" height="80" viewBox="0 0 100 80" fill="none">
+      <path d="M15 14h70l-25 30v22l-20-8v-14z" stroke={stroke} strokeWidth="1.5" strokeLinejoin="round"/>
+      <circle cx="50" cy="68" r="2" fill="var(--accent-gold)"/>
+    </svg>
+  );
+  if (kind === 'drafts') return (
+    <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
+      <rect x="30" y="14" width="60" height="58" rx="4" stroke={stroke} strokeWidth="1.5"/>
+      <line x1="40" y1="28" x2="80" y2="28" stroke={stroke} strokeWidth="1.5"/>
+      <line x1="40" y1="40" x2="80" y2="40" stroke={stroke} strokeWidth="1.5" strokeDasharray="3 3"/>
+      <line x1="40" y1="52" x2="65" y2="52" stroke={stroke} strokeWidth="1.5" strokeDasharray="3 3"/>
+      <circle cx="86" cy="60" r="6" stroke="var(--accent-gold)" strokeWidth="1.5"/>
+      <line x1="83" y1="60" x2="89" y2="60" stroke="var(--accent-gold)"/>
+      <line x1="86" y1="57" x2="86" y2="63" stroke="var(--accent-gold)"/>
+    </svg>
+  );
+  return null;
+}
+
+// ─── FilterCheck ─────────────────────────
+// Checklist row inside a filter panel. Caller owns active state.
+//   <FilterCheck label="Marriott Bonvoy" active={isOn} onClick={toggle}/>
+function FilterCheck({ label, active, onClick }) {
+  return (
+    <div className={"filter-check " + (active ? 'on' : '')} onClick={onClick}>
+      <span className="box"><Icon name="Check" size={11} stroke={2.5}/></span>
+      {label}
+    </div>
+  );
+}
+
+// ─── FilterChip ──────────────────────────
+// Toggleable pill inside a filter panel. Caller owns active state.
+//   <FilterChip label="Gold" active={isOn} onClick={toggle}/>
+function FilterChip({ label, active, onClick }) {
+  return (
+    <button className={"filter-pill " + (active ? 'active' : '')} onClick={onClick}>{label}</button>
+  );
+}
+
 // ─── Expose ───────────────────────────
 Object.assign(window, {
-  Icon, Sigil, Pill, Btn, Toggle, Logo, HealthScore, HealthDonut, HealthNumber,
+  COLORS, HEALTH_COLOR,
+  Icon, Sigil, Pill, Btn, Toggle, Logo, HealthScore, HealthDonut, HealthNumber, MiniHealth,
   getHealthColor, SignalBadge, Status,
   ToastContext, useToast, BRAND_LOGOS, CODE_TO_BRAND,
-  TableRowActions, TablePagination
+  TableRowActions, TablePagination, OfferCard,
+  EmptyArt, FilterCheck, FilterChip
 });
