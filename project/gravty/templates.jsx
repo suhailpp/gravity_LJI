@@ -57,55 +57,17 @@ function TemplateSelector({ goTo }) {
       {/* Filter pills */}
       <div className="row gap-8 wrap" style={{marginBottom:20}}>
         {filters.map(f => (
-          <button key={f} className={"filter-pill " + (filter===f?'active':'')} onClick={()=>setFilter(f)}>{f}</button>
+          <FilterChip key={f} label={f} active={filter===f} onClick={()=>setFilter(f)}/>
         ))}
       </div>
 
       {/* Template grid */}
       <div id="tpl-grid" style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16}}>
         {shown.map(t => (
-          <div key={t.i} className="card hoverable" style={{position:'relative', display:'flex', flexDirection:'column', gap:10}}>
-            {t.rec && (
-              <div style={{position:'absolute', top:-9, right:14, background:'var(--accent-gold)', color:'#0A0C10', fontSize:10, fontWeight:600, padding:'3px 10px', borderRadius:999, display:'flex', alignItems:'center', gap:4}}>
-                <span>✦</span> Recommended
-              </div>
-            )}
-            <Pill style={{alignSelf:'flex-start'}}>{t.cat}</Pill>
-            <div className="sora" style={{fontSize:16, fontWeight:600, lineHeight:1.2}}>{t.name}</div>
-            <div className="mute" style={{fontSize:13, lineHeight:1.5}}>{t.desc}</div>
-            <div className="col gap-4" style={{marginTop:6}}>
-              {t.meta.map((m,mi)=>(
-                <div key={mi} style={{fontSize:11, color:'var(--text-secondary)'}}>
-                  <span style={{color: mi===0 ? 'var(--accent-green)' : 'var(--text-muted)'}}>{mi===0?'↑':'·'}</span> {m}
-                </div>
-              ))}
-            </div>
-            <div style={{flex:1}}/>
-            <div style={{marginTop:10}}>
-              <Btn kind={t.rec ? 'primary' : ''} sm onClick={()=> t.i===2 ? goTo('editor', {template:'tier-recovery'}) : null}>Use This Template →</Btn>
-            </div>
-          </div>
+          <TemplateCard key={t.i}
+                        template={t}
+                        onSelect={(tpl) => tpl.i === 2 ? goTo('editor', {template:'tier-recovery'}) : null}/>
         ))}
-      </div>
-    </div>
-  );
-}
-
-function PathCard({ highlighted, title, subtitle, ctaLabel, onCTA, art }) {
-  return (
-    <div className="card hoverable" style={{
-      borderWidth: highlighted ? 2 : 1,
-      borderColor: highlighted ? 'var(--accent-gold)' : 'var(--border-default)',
-      background: highlighted ? 'var(--bg-elevated)' : 'var(--bg-surface)',
-      padding: '24px',
-      display:'flex', flexDirection:'column', gap:14, minHeight: 250
-    }}>
-      <div style={{height:80, display:'flex', alignItems:'center'}}>{art}</div>
-      <div className="sora" style={{fontSize:18, fontWeight:600}}>{title}</div>
-      <div className="mute" style={{fontSize:13, lineHeight:1.5}}>{subtitle}</div>
-      <div style={{flex:1}}/>
-      <div>
-        <Btn kind={highlighted ? 'primary' : ''} onClick={onCTA}>{ctaLabel}</Btn>
       </div>
     </div>
   );
