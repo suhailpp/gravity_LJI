@@ -614,6 +614,26 @@ function TemplateCard({ template, onSelect }) {
   );
 }
 
+// ─── StatusTimeline ──────────────────────
+// Vertical milestone timeline (created / approved / live / now /
+// projected). Uses existing CSS: .timeline / .tnode.{past|now|peak|future}
+// / .tdate / .ttitle / .tsub. Each node:
+//   { kind, date, title, sub?, subStyle? }
+//   <StatusTimeline nodes={…} style={{marginTop:14}}/>
+function StatusTimeline({ nodes, style }) {
+  return (
+    <div className="timeline" style={style}>
+      {nodes.map((n, i) => (
+        <div key={i} className={"tnode " + (n.kind || 'past')}>
+          <div className="tdate">{n.date}</div>
+          <div className="ttitle">{n.title}</div>
+          {n.sub && <div className="tsub" style={n.subStyle}>{n.sub}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Expose ───────────────────────────
 Object.assign(window, {
   COLORS, HEALTH_COLOR,
@@ -622,5 +642,6 @@ Object.assign(window, {
   ToastContext, useToast, BRAND_LOGOS, CODE_TO_BRAND, CODE_TO_SIGNAL,
   TableRowActions, TablePagination, OfferCard,
   EmptyArt, FilterCheck, FilterChip, OfferChipRow, RadioRow,
-  InsightCard, MetricTile, ViewToggle, PathCard, TemplateCard
+  InsightCard, MetricTile, ViewToggle, PathCard, TemplateCard,
+  StatusTimeline
 });

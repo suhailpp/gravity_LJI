@@ -238,26 +238,18 @@ function DrawerContent({ id, onClose }) {
             <div className="drawer-section">
               <h5>Momentum Timeline</h5>
               <MomentumCurve signal={d.signal}/>
-              <div className="timeline" style={{marginTop:14}}>
-                <div className="tnode past"><div className="tdate">MAY 1</div><div className="ttitle">Created</div></div>
-                <div className="tnode past"><div className="tdate">MAY 3</div><div className="ttitle">Approved by Finance</div></div>
-                <div className="tnode past"><div className="tdate">MAY 5</div><div className="ttitle">Live</div></div>
-                <div className="tnode peak">
-                  <div className="tdate">MAY 12</div>
-                  <div className="ttitle">Peak · Ramadan start</div>
-                  <div className="tsub" style={{color:'var(--accent-gold)'}}>+280% velocity</div>
-                </div>
-                <div className="tnode now">
-                  <div className="tdate">MAY 18 · TODAY</div>
-                  <div className="ttitle">{d.health < 50 ? 'Declining sharply' : d.signal === 'trending' ? 'Tracking ahead' : 'Steady performance'}</div>
-                </div>
-                <div className="tnode future"><div className="tdate">MAY 25</div><div className="ttitle">Projected plateau</div></div>
-                <div className="tnode future">
-                  <div className="tdate">JUN 15</div>
-                  <div className="ttitle">End Date</div>
-                  <div className="tsub">Est. 2,100 redemptions</div>
-                </div>
-              </div>
+              <StatusTimeline style={{marginTop:14}} nodes={[
+                { kind:'past',   date:'MAY 1',           title:'Created' },
+                { kind:'past',   date:'MAY 3',           title:'Approved by Finance' },
+                { kind:'past',   date:'MAY 5',           title:'Live' },
+                { kind:'peak',   date:'MAY 12',          title:'Peak · Ramadan start',
+                                 sub:'+280% velocity', subStyle:{color:'var(--accent-gold)'} },
+                { kind:'now',    date:'MAY 18 · TODAY',
+                                 title: d.health < 50 ? 'Declining sharply' : d.signal === 'trending' ? 'Tracking ahead' : 'Steady performance' },
+                { kind:'future', date:'MAY 25',          title:'Projected plateau' },
+                { kind:'future', date:'JUN 15',          title:'End Date',
+                                 sub:'Est. 2,100 redemptions' },
+              ]}/>
             </div>
 
             <div className="ai-insight">
