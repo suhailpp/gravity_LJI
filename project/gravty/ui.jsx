@@ -470,6 +470,64 @@ function OfferChipRow({ offers, more = 0, onClick }) {
   );
 }
 
+// ─── InsightCard ─────────────────────────
+// Colored attention card used on the Dashboard intelligence strip.
+// `tone` = red | green | amber | blue (drives the existing
+// `.insight-card.<tone>` CSS variant — no new styles).
+//   <InsightCard tone="red" icon={<Icon name="TrendingDown"/>}
+//                headline="…" body="…" ctaLabel="View"
+//                onClick={…}/>
+function InsightCard({ tone = 'blue', icon, headline, body, ctaLabel, onClick }) {
+  return (
+    <div className={"insight-card " + tone + " hoverable"} onClick={onClick}>
+      <div className="ic-icon">{icon}</div>
+      <h4>{headline}</h4>
+      <p>{body}</p>
+      <div className="ic-cta row gap-4">{ctaLabel} <Icon name="ArrowRight" size={12}/></div>
+    </div>
+  );
+}
+
+// ─── MetricTile ──────────────────────────
+// KPI tile with label / value / change indicator. `changeKind` drives
+// the existing `.mc.up | .down | .flat | .warn` CSS variant.
+//   <MetricTile label="Active Members" value="1.24M" change="▲ 3.1%" changeKind="up"/>
+//   <MetricTile … onClick={…}/>  // tile gets `.clickable` class
+function MetricTile({ label, value, unit, change, changeKind = 'flat', onClick }) {
+  return (
+    <div className={"metric-tile" + (onClick ? ' clickable' : '')} onClick={onClick}>
+      <div className="ml">{label}</div>
+      <div className="mv">{value}{unit && <span className="unit"> {unit}</span>}</div>
+      <div className={"mc " + changeKind}>{change}</div>
+    </div>
+  );
+}
+
+// ─── ViewToggle ──────────────────────────
+// Segmented button group (e.g. Table | Map). Uses the existing
+// `.btn.sm.ghost` styling. Options: [{ id, label, icon? }].
+//   <ViewToggle value={view} onChange={setView}
+//               options={[{id:'table',label:'Table',icon:'Table'},
+//                         {id:'map',  label:'Map',  icon:'Map'}]}/>
+function ViewToggle({ value, onChange, options }) {
+  return (
+    <div className="row gap-4"
+         style={{padding:'3px', background:'var(--bg-elevated)', borderRadius:8, border:'1px solid var(--border-default)'}}>
+      {options.map(o => (
+        <button key={o.id}
+                className="btn sm ghost"
+                style={{
+                  background: value === o.id ? 'var(--accent-gold)' : 'transparent',
+                  color:      value === o.id ? '#0A0C10'           : 'var(--text-secondary)',
+                }}
+                onClick={()=>onChange(o.id)}>
+          {o.icon && <Icon name={o.icon} size={13}/>} {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ─── Expose ───────────────────────────
 Object.assign(window, {
   COLORS, HEALTH_COLOR,
@@ -477,5 +535,6 @@ Object.assign(window, {
   getHealthColor, SignalBadge, Status,
   ToastContext, useToast, BRAND_LOGOS, CODE_TO_BRAND, CODE_TO_SIGNAL,
   TableRowActions, TablePagination, OfferCard,
-  EmptyArt, FilterCheck, FilterChip, OfferChipRow
+  EmptyArt, FilterCheck, FilterChip, OfferChipRow,
+  InsightCard, MetricTile, ViewToggle
 });

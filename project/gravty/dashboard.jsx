@@ -69,30 +69,30 @@ function Dashboard({ goTo, openAi, openDrawer }) {
       <div className="col gap-12">
         <div className="lbl-cap">What needs your attention</div>
         <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16}}>
-          <div className="insight-card red hoverable" onClick={()=>goTo('offers', {filter:'gold'})}>
-            <div className="ic-icon"><Icon name="TrendingDown" size={14} color="var(--accent-red)"/></div>
-            <h4>Gold Tier Redemption Down 18%</h4>
-            <p>3 offers expiring this week may be contributing.</p>
-            <div className="ic-cta row gap-4">View Offers <Icon name="ArrowRight" size={12}/></div>
-          </div>
-          <div className="insight-card green hoverable" onClick={()=>openDrawer(1)}>
-            <div className="ic-icon"><Icon name="TrendingUp" size={14} color="var(--accent-green)"/></div>
-            <h4>Weekend BOGO — 340% Above Forecast</h4>
-            <p>Dubai · Marriott Bonvoy · Consider extending the offer window.</p>
-            <div className="ic-cta row gap-4">Review Offer <Icon name="ArrowRight" size={12}/></div>
-          </div>
-          <div className="insight-card amber hoverable" onClick={()=>goTo('offers', {tab:'drafts'})}>
-            <div className="ic-icon"><Icon name="FileEdit" size={14} color="var(--accent-amber)"/></div>
-            <h4>Draft Stalled — Ramadan Miles Bonus</h4>
-            <p>Last edited 6 days ago · Eligibility rules incomplete.</p>
-            <div className="ic-cta row gap-4">Resume Draft <Icon name="ArrowRight" size={12}/></div>
-          </div>
-          <div className="insight-card blue hoverable" onClick={()=>window.__toast && window.__toast('Coming in the next release.')}>
-            <div className="ic-icon"><Icon name="DollarSign" size={14} color="var(--accent-blue)"/></div>
-            <h4>Reward Liability Up 12% This Month</h4>
-            <p>Platinum upgrades driving spike · Finance team flagged for review.</p>
-            <div className="ic-cta row gap-4">View Report <Icon name="ArrowRight" size={12}/></div>
-          </div>
+          <InsightCard tone="red"
+            icon={<Icon name="TrendingDown" size={14} color="var(--accent-red)"/>}
+            headline="Gold Tier Redemption Down 18%"
+            body="3 offers expiring this week may be contributing."
+            ctaLabel="View Offers"
+            onClick={()=>goTo('offers', {filter:'gold'})}/>
+          <InsightCard tone="green"
+            icon={<Icon name="TrendingUp" size={14} color="var(--accent-green)"/>}
+            headline="Weekend BOGO — 340% Above Forecast"
+            body="Dubai · Marriott Bonvoy · Consider extending the offer window."
+            ctaLabel="Review Offer"
+            onClick={()=>openDrawer(1)}/>
+          <InsightCard tone="amber"
+            icon={<Icon name="FileEdit" size={14} color="var(--accent-amber)"/>}
+            headline="Draft Stalled — Ramadan Miles Bonus"
+            body="Last edited 6 days ago · Eligibility rules incomplete."
+            ctaLabel="Resume Draft"
+            onClick={()=>goTo('offers', {tab:'drafts'})}/>
+          <InsightCard tone="blue"
+            icon={<Icon name="DollarSign" size={14} color="var(--accent-blue)"/>}
+            headline="Reward Liability Up 12% This Month"
+            body="Platinum upgrades driving spike · Finance team flagged for review."
+            ctaLabel="View Report"
+            onClick={()=>window.__toast && window.__toast('Coming in the next release.')}/>
         </div>
       </div>
 
@@ -108,11 +108,8 @@ function Dashboard({ goTo, openAi, openDrawer }) {
             { l:'Expiring in 7 Days',    v:'3',      mc:'⚠ attention', mck:'warn', click:()=>goTo('offers',{view:'expiring'}) },
             { l:'Rewards Triggered',     v:'2,847',  mc:'▲ 12%',  mck:'up' },
           ].map((t,i)=>(
-            <div key={i} className={"metric-tile " + (t.click ? 'clickable' : '')} onClick={t.click}>
-              <div className="ml">{t.l}</div>
-              <div className="mv">{t.v}{t.unit && <span className="unit"> {t.unit}</span>}</div>
-              <div className={"mc " + t.mck}>{t.mc}</div>
-            </div>
+            <MetricTile key={i} label={t.l} value={t.v} unit={t.unit}
+                        change={t.mc} changeKind={t.mck} onClick={t.click}/>
           ))}
         </div>
 
@@ -166,10 +163,9 @@ function Dashboard({ goTo, openAi, openDrawer }) {
             <Pill kind="solid-dark">{camps.length} active</Pill>
           </div>
           <div className="row gap-10">
-            <div className="row gap-4" style={{padding:'3px',background:'var(--bg-elevated)',borderRadius:8, border:'1px solid var(--border-default)'}}>
-              <button className={"btn sm ghost"} style={{background: view==='table'?'var(--accent-gold)':'transparent', color: view==='table'?'#0A0C10':'var(--text-secondary)'}} onClick={()=>setView('table')}><Icon name="Table" size={13}/> Table</button>
-              <button className={"btn sm ghost"} style={{background: view==='map'?'var(--accent-gold)':'transparent', color: view==='map'?'#0A0C10':'var(--text-secondary)'}} onClick={()=>setView('map')}><Icon name="Map" size={13}/> Map</button>
-            </div>
+            <ViewToggle value={view} onChange={setView}
+                        options={[{id:'table', label:'Table', icon:'Table'},
+                                  {id:'map',   label:'Map',   icon:'Map'}]}/>
             <div className="btn-link row gap-4" onClick={()=>goTo('offers')}>View All <Icon name="ArrowRight" size={12}/></div>
           </div>
         </div>
@@ -187,7 +183,7 @@ function Dashboard({ goTo, openAi, openDrawer }) {
             <div className="row gap-8">
               <div className="mute" style={{fontSize:12}}>Connection mode:</div>
               {[{id:'segment', label:'By Segment'},{id:'sponsor',label:'By Sponsor'},{id:'reward',label:'By Reward'}].map(m => (
-                <button key={m.id} className={"filter-pill " + (mapMode===m.id?'active':'')} onClick={()=>setMapMode(m.id)}>{m.label}</button>
+                <FilterChip key={m.id} label={m.label} active={mapMode===m.id} onClick={()=>setMapMode(m.id)}/>
               ))}
             </div>
             <RelationshipGraph
