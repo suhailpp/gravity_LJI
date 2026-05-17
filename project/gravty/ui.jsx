@@ -448,6 +448,33 @@ function FilterChip({ label, active, onClick }) {
   );
 }
 
+// ─── RadioRow ────────────────────────────
+// Single row of a radio-list (segments, rules, choices). Caller owns
+// the active state. Supports three shapes:
+//   <RadioRow label="…" active onClick={…}/>                           — radio + label
+//   <RadioRow label="…" sublabel="…" active onClick={…}/>              — radio + label + sublabel
+//   <RadioRow icon="Plus" label="Build new…" muted onClick={…}/>       — icon + muted label (add-new variant)
+// Sublabel accepts any ReactNode so callers can interpolate <b/>.
+function RadioRow({ label, sublabel, active, onClick, icon, muted }) {
+  const rowStyle = muted ? { color: 'var(--text-secondary)' } : undefined;
+  const labelStyle = muted ? { color: 'var(--text-secondary)' } : undefined;
+  return (
+    <div className={"radio-row " + (active ? 'active' : '')}
+         onClick={onClick}
+         style={rowStyle}>
+      {icon ? <Icon name={icon} size={11}/> : <div className="radio"/>}
+      {sublabel ? (
+        <div style={{flex:1}}>
+          <div className="rl" style={labelStyle}>{label}</div>
+          <div className="rs">{sublabel}</div>
+        </div>
+      ) : (
+        <span className="rl" style={labelStyle}>{label}</span>
+      )}
+    </div>
+  );
+}
+
 // ─── OfferChipRow ────────────────────────
 // Horizontal row of small offer chips (logo + truncated title) with a
 // "+N more" tail when offers overflow. Used by segments and rules to
@@ -535,6 +562,6 @@ Object.assign(window, {
   getHealthColor, SignalBadge, Status,
   ToastContext, useToast, BRAND_LOGOS, CODE_TO_BRAND, CODE_TO_SIGNAL,
   TableRowActions, TablePagination, OfferCard,
-  EmptyArt, FilterCheck, FilterChip, OfferChipRow,
+  EmptyArt, FilterCheck, FilterChip, OfferChipRow, RadioRow,
   InsightCard, MetricTile, ViewToggle
 });

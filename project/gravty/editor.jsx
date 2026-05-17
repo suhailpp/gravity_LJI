@@ -465,7 +465,7 @@ function Step1({ title, setTitle, showAlts, setShowAlts, campaignId, setCampaign
         <div className="field-label"><span className="lbl">Offer Mechanic</span></div>
         <div className="row gap-8 wrap">
           {['BOGO','Cashback','Points ×N','Flat Off','Voucher','Cause'].map(m => (
-            <button key={m} className={"filter-pill " + (mechanic===m?'active':'')} onClick={()=>setMechanic(m)}>{m}</button>
+            <FilterChip key={m} label={m} active={mechanic===m} onClick={()=>setMechanic(m)}/>
           ))}
         </div>
         {mechanic==='BOGO' && (
@@ -614,17 +614,13 @@ function Step2({ segments, setSegments, ruleSets, setRuleSets,
         </div>
         <div className="card" style={{padding:8, background:'var(--bg-overlay)'}}>
           {segments.map(s => (
-            <div key={s.id} className={"radio-row " + (segment===s.id?'active':'')} onClick={()=>setSegment(s.id)}>
-              <div className="radio"/>
-              <div style={{flex:1}}>
-                <div className="rl">{s.name}</div>
-                <div className="rs">{s.count.toLocaleString()} members</div>
-              </div>
-            </div>
+            <RadioRow key={s.id}
+                      label={s.name}
+                      sublabel={`${s.count.toLocaleString()} members`}
+                      active={segment===s.id}
+                      onClick={()=>setSegment(s.id)}/>
           ))}
-          <div className="radio-row" style={{color:'var(--text-secondary)'}}>
-            <Icon name="Plus" size={12}/> <span className="rl" style={{color:'var(--text-secondary)'}}>Build a new segment</span>
-          </div>
+          <RadioRow icon="Plus" muted label="Build a new segment"/>
         </div>
       </div>
 
@@ -635,14 +631,12 @@ function Step2({ segments, setSegments, ruleSets, setRuleSets,
         </div>
         <div className="card" style={{padding:8, background:'var(--bg-overlay)'}}>
           {ruleSets.map(r => (
-            <div key={r.id} className={"radio-row " + (ruleSet===r.id?'active':'')} onClick={()=>setRuleSet(r.id)}>
-              <div className="radio"/>
-              <div className="rl">{r.name}</div>
-            </div>
+            <RadioRow key={r.id}
+                      label={r.name}
+                      active={ruleSet===r.id}
+                      onClick={()=>setRuleSet(r.id)}/>
           ))}
-          <div className="radio-row" style={{color:'var(--text-secondary)'}}>
-            <Icon name="Plus" size={12}/> <span className="rl" style={{color:'var(--text-secondary)'}}>Build a new rule set</span>
-          </div>
+          <RadioRow icon="Plus" muted label="Build a new rule set"/>
         </div>
       </div>
 
@@ -655,7 +649,7 @@ function Step2({ segments, setSegments, ruleSets, setRuleSets,
         <div className="field-label"><span className="lbl">Tier</span></div>
         <div className="row gap-8">
           {['Blue','Silver','Gold','Platinum'].map(t => (
-            <button key={t} className={"filter-pill " + (tiers.has(t)?'active':'')} onClick={()=>toggleTier(t)}>{t}</button>
+            <FilterChip key={t} label={t} active={tiers.has(t)} onClick={()=>toggleTier(t)}/>
           ))}
         </div>
       </div>
@@ -672,9 +666,8 @@ function Step2({ segments, setSegments, ruleSets, setRuleSets,
         {showRegionMenu && (
           <div className="card" style={{padding:6, background:'var(--bg-overlay)', position:'absolute', top:'100%', left:0, zIndex:10, marginTop:6, minWidth:200, boxShadow:'var(--shadow-pop)'}}>
             {allRegions.filter(r => !regions.includes(r)).map(r => (
-              <div key={r} className="radio-row" onClick={()=>{setRegions([...regions, r]); setShowRegionMenu(false);}}>
-                <Icon name="Plus" size={11}/> <span className="rl">{r}</span>
-              </div>
+              <RadioRow key={r} icon="Plus" label={r}
+                        onClick={()=>{setRegions([...regions, r]); setShowRegionMenu(false);}}/>
             ))}
             {allRegions.filter(r => !regions.includes(r)).length === 0 && (
               <div className="mute" style={{fontSize:12, padding:8}}>All regions selected.</div>
@@ -693,9 +686,8 @@ function Step2({ segments, setSegments, ruleSets, setRuleSets,
         {showBehavMenu && (
           <div className="card" style={{padding:6, background:'var(--bg-overlay)', position:'absolute', top:'100%', left:0, zIndex:10, marginTop:6, minWidth:240, boxShadow:'var(--shadow-pop)'}}>
             {allBehaviours.filter(b => !behaviours.includes(b)).map(b => (
-              <div key={b} className="radio-row" onClick={()=>{setBehaviours([...behaviours, b]); setShowBehavMenu(false);}}>
-                <Icon name="Plus" size={11}/> <span className="rl">{b}</span>
-              </div>
+              <RadioRow key={b} icon="Plus" label={b}
+                        onClick={()=>{setBehaviours([...behaviours, b]); setShowBehavMenu(false);}}/>
             ))}
           </div>
         )}
@@ -915,37 +907,29 @@ function Step4({ startDate, setStartDate, endDate, setEndDate,
       <div className="field">
         <div className="field-label"><span className="lbl">Redemption Logic</span></div>
         <div className="card" style={{padding:6, background:'var(--bg-overlay)'}}>
-          <div className={"radio-row " + (redemptionLogic==='auto'?'active':'')} onClick={()=>setRedemptionLogic('auto')}>
-            <div className="radio"/><span className="rl">Auto-applied at checkout</span>
-          </div>
-          <div className={"radio-row " + (redemptionLogic==='claim'?'active':'')} onClick={()=>setRedemptionLogic('claim')}>
-            <div className="radio"/>
-            <div style={{flex:1}}>
-              <div className="rl">Member must claim in-app first</div>
-              <div className="rs">Claim window: <b style={{color:'var(--text-primary)'}}>7 days</b> after notification</div>
-            </div>
-          </div>
+          <RadioRow label="Auto-applied at checkout"
+                    active={redemptionLogic==='auto'}
+                    onClick={()=>setRedemptionLogic('auto')}/>
+          <RadioRow label="Member must claim in-app first"
+                    sublabel={<>Claim window: <b style={{color:'var(--text-primary)'}}>7 days</b> after notification</>}
+                    active={redemptionLogic==='claim'}
+                    onClick={()=>setRedemptionLogic('claim')}/>
         </div>
       </div>
 
       <div className="field">
         <div className="field-label"><span className="lbl">Approval Required</span></div>
         <div className="card" style={{padding:6, background:'var(--bg-overlay)'}}>
-          <div className={"radio-row " + (approvalChoice==='finance'?'active':'')} onClick={()=>setApprovalChoice('finance')}>
-            <div className="radio"/>
-            <div className="rl">Finance sign-off required</div>
-          </div>
-          <div className={"radio-row " + (approvalChoice==='marketing'?'active':'')} onClick={()=>setApprovalChoice('marketing')}>
-            <div className="radio"/>
-            <div className="rl">Marketing Head approval</div>
-          </div>
-          <div className={"radio-row " + (approvalChoice==='none'?'active':'')} onClick={()=>setApprovalChoice('none')}>
-            <div className="radio"/>
-            <div style={{flex:1}}>
-              <div className="rl">No approval required — publish directly</div>
-              <div className="rs">Offer publishes immediately to Scheduled or Live state.</div>
-            </div>
-          </div>
+          <RadioRow label="Finance sign-off required"
+                    active={approvalChoice==='finance'}
+                    onClick={()=>setApprovalChoice('finance')}/>
+          <RadioRow label="Marketing Head approval"
+                    active={approvalChoice==='marketing'}
+                    onClick={()=>setApprovalChoice('marketing')}/>
+          <RadioRow label="No approval required — publish directly"
+                    sublabel="Offer publishes immediately to Scheduled or Live state."
+                    active={approvalChoice==='none'}
+                    onClick={()=>setApprovalChoice('none')}/>
         </div>
         {approvalChoice !== 'none' && (
           <div className="field-row" style={{marginTop:10}}>
@@ -1123,8 +1107,8 @@ function OfferMobileCard({ step, previewMode, setPreviewMode, mechanic, tiers, f
     <div className="col gap-12">
       {setPreviewMode && (
         <div className="row gap-4">
-          <button className={"filter-pill " + (previewMode==='card'?'active':'')} onClick={()=>setPreviewMode('card')}>Card View</button>
-          <button className={"filter-pill " + (previewMode==='expanded'?'active':'')} onClick={()=>setPreviewMode('expanded')}>Expanded View</button>
+          <FilterChip label="Card View"     active={previewMode==='card'}     onClick={()=>setPreviewMode('card')}/>
+          <FilterChip label="Expanded View" active={previewMode==='expanded'} onClick={()=>setPreviewMode('expanded')}/>
         </div>
       )}
       <div className="phone-frame" style={fullSize ? {width: 375} : {}}>
@@ -1230,8 +1214,8 @@ function OfferWebCard({ mechanic, tiers, fullSize, previewMode, setPreviewMode }
     <div className="col gap-12">
       {setPreviewMode && fullSize && (
         <div className="row gap-4" style={{justifyContent:'center'}}>
-          <button className={"filter-pill " + (previewMode==='card'?'active':'')} onClick={()=>setPreviewMode('card')}>Card View</button>
-          <button className={"filter-pill " + (previewMode==='expanded'?'active':'')} onClick={()=>setPreviewMode('expanded')}>Expanded View</button>
+          <FilterChip label="Card View"     active={previewMode==='card'}     onClick={()=>setPreviewMode('card')}/>
+          <FilterChip label="Expanded View" active={previewMode==='expanded'} onClick={()=>setPreviewMode('expanded')}/>
         </div>
       )}
       <div className="card" style={{padding:0, overflow:'hidden', borderRadius:10, width:W, margin:fullSize?'0 auto':0}}>
@@ -1299,8 +1283,8 @@ function FullPreviewModal({ open, onClose, mechanic, tiers }) {
           </div>
           <div className="row gap-10">
             <div className="row gap-4" style={{padding:2, background:'var(--bg-overlay)', borderRadius:6}}>
-              <button className={"filter-pill " + (mode==='card'?'active':'')} onClick={()=>setMode('card')}>Card View</button>
-              <button className={"filter-pill " + (mode==='expanded'?'active':'')} onClick={()=>setMode('expanded')}>Expanded View</button>
+              <FilterChip label="Card View"     active={mode==='card'}     onClick={()=>setMode('card')}/>
+              <FilterChip label="Expanded View" active={mode==='expanded'} onClick={()=>setMode('expanded')}/>
             </div>
             <button className="icon-btn" onClick={onClose}><Icon name="X" size={16}/></button>
           </div>
