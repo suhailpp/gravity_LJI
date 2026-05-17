@@ -17,7 +17,7 @@ function App() {
     { dot:'var(--accent-green)', t:'Weekend BOGO 340% above forecast',    s:'Marriott Bonvoy · Dubai · 6 hr ago',           action:'drawer' },
   ]);
 
-  // Editor → app approval bus
+  // Editor to app approval bus
   useEffect(() => {
     window.__onOfferSubmitted = (payload) => {
       const newNotif = {
@@ -31,7 +31,7 @@ function App() {
       setSubmittedOffers(arr => [{
         id: Date.now(), code: 'NW', sponsor: 'New Offer', offer: payload.title,
         cid: payload.campaignId || '', mech: 'Custom', tiers: [], region: [],
-        range: '—', sig: null, kind: 'in-review', health: null, delta: 0, trophy: false
+        range: {kind:'plain', label:'—'}, sig: null, kind: 'in-review', health: null, delta: 0, trophy: false
       }, ...arr]);
       setToast(payload.published ? '✓ Offer published' : '✓ Offer submitted for approval');
       setTimeout(()=>setToast(null), 2700);
@@ -320,11 +320,11 @@ function MomentumCurve({ signal }) {
 
 function ScoreBars() {
   const bars = [
-    {l:'Redemption velocity', v:0.3, k:'red',    note:'Low ↓'},
-    {l:'Audience reach',      v:0.7, k:'',       note:'Good →'},
+    {l:'Redemption velocity', v:0.3, k:'red',    note:<>Low <Icon name="ArrowDown" size={10}/></>},
+    {l:'Audience reach',      v:0.7, k:'',       note:<>Good <Icon name="ArrowRight" size={10}/></>},
     {l:'Time remaining',      v:0.55,k:'amber',  note:'Moderate'},
-    {l:'Funding confirmed',   v:1.0, k:'green',  note:'✓'},
-    {l:'Member sentiment',    v:0.4, k:'red',    note:'Low ↓'},
+    {l:'Funding confirmed',   v:1.0, k:'green',  note:<Icon name="Check" size={12}/>},
+    {l:'Member sentiment',    v:0.4, k:'red',    note:<>Low <Icon name="ArrowDown" size={10}/></>},
   ];
   return (
     <div>
@@ -441,7 +441,7 @@ function AIPanel({ onClose, query, setQuery, onCTA }) {
           <div className="col gap-4">
             {suggestions.map((s,i)=>(
               <div key={i} className="ai-suggestion" onClick={()=>setQuery(s)}>
-                <span className="arrow">→</span><span>{s}</span>
+                <span className="arrow" style={{display:'inline-flex'}}><Icon name="ArrowRight" size={12}/></span><span>{s}</span>
               </div>
             ))}
           </div>
@@ -452,7 +452,7 @@ function AIPanel({ onClose, query, setQuery, onCTA }) {
             Three offers targeting Gold tier in Dubai expired in the last 10 days with no replacement. The gap in active offers for this segment is the primary driver of the decline.
           </div>
           <Btn kind="primary" sm icon={<Icon name="Plus" size={12}/>} onClick={onCTA}>Create Re-engagement Offer</Btn>
-          <span className="btn-link" style={{fontSize:12}} onClick={()=>setQuery(null)}>← Ask something else</span>
+          <span className="btn-link" style={{fontSize:12, display:'inline-flex', alignItems:'center', gap:4}} onClick={()=>setQuery(null)}><Icon name="ArrowLeft" size={12}/> Ask something else</span>
         </div>
       )}
     </div>

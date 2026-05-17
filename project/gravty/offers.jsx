@@ -15,7 +15,7 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
   });
   const [pendingFilters, setPendingFilters] = useState(appliedFilters);
 
-  // Open panel → sync pending from applied
+  // Open panel to sync pending from applied
   useEffect(() => {
     if (filterOpen) setPendingFilters(cloneFilters(appliedFilters));
   }, [filterOpen]);
@@ -45,14 +45,14 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
     pendingFilters.sponsor.size + pendingFilters.type.size + pendingFilters.tier.size + pendingFilters.region.size + pendingFilters.status.size;
 
   const all = [
-    { id:1, code:'MA', sponsor:'Marriott Bonvoy', cat:'Hotels',         offer:'Flat 50% Off Weekend Stays',     cid:'EMSK_MA_BOGO_MAY24',  mech:'BOGO',      tiers:['Gold','Plat'],   region:['Dubai','Abu Dhabi'],            range:'May 1 → Jun 30',          sig:'trending', kind:'live',     health:87, delta:12, trophy:false },
-    { id:2, code:'CA', sponsor:'Careem',          cat:'Rides',          offer:'10% Cashback on Every Ride',      cid:'EMSK_CA_EARN_MAY24',  mech:'Cashback',  tiers:['Blue','Silver'], region:['Dubai','Sharjah'],              range:'May 5 → Jun 15',          sig:'fast',     kind:'live',     health:74, delta:8,  trophy:false },
-    { id:3, code:'NO', sponsor:'Noon',            cat:'E-commerce',     offer:'3× Miles on All Bookings',        cid:'EMSK_NO_RAM_MAY24',   mech:'Points ×N', tiers:['All Tiers'],     region:['All UAE'],                      range:'May 5 → Jun 15 · 12d',    sig:'losing',   kind:'live',     health:41, delta:-15,trophy:true  },
-    { id:4, code:'CF', sponsor:'Cult.fit',        cat:'Lifestyle',      offer:'1 Month Free Cult.fit Access',    cid:'EMSK_CF_FIT_MAY24',   mech:'Voucher',   tiers:['Gold'],          region:['Dubai'],                        range:'May 10 → Jul 31',         sig:'elite',    kind:'live',     health:81, delta:5,  trophy:false },
-    { id:5, code:'BM', sponsor:'BookMyShow',      cat:'Entertainment',  offer:'Buy 2 Tickets Get 1 Free',        cid:'EMSK_BM_EXP_MAY24',   mech:'BOGO',      tiers:['Silver','Gold'], region:['Dubai','Abu Dhabi'],            range:'⏳ 4 days left',           sig:'expiring', kind:'live',     health:89, delta:0,  trophy:false },
-    { id:6, code:'EM', sponsor:'Emirates',        cat:'Travel',         offer:'Complimentary Business Upgrade',  cid:'EMSK_EM_BIZ_APR24',   mech:'BOGO',      tiers:['Platinum'],      region:['DXB','AUH'],                    range:'Apr 1 → Jun 30',          sig:null,       kind:'live',     health:63, delta:0,  trophy:false },
-    { id:7, code:'CH', sponsor:'Chalhoub',        cat:'Luxury',         offer:'20% Off Luxury Collections',      cid:'EMSK_CH_LUX_JUN24',   mech:'Flat Off',  tiers:['Gold','Plat'],   region:['Dubai'],                        range:'Starts Jun 1',            sig:null,       kind:'scheduled',health:null,delta:0, trophy:false },
-    { id:8, code:'NO', sponsor:'Noon',            cat:'E-commerce',     offer:'Eid Exclusive Gift Voucher',      cid:'EMSK_NO_EID_APR24',   mech:'Voucher',   tiers:['All Tiers'],     region:['All UAE'],                      range:'Ended Apr 25',            sig:null,       kind:'ended',    health:null,delta:0, trophy:false },
+    { id:1, code:'MA', sponsor:'Marriott Bonvoy', cat:'Hotels',         offer:'Flat 50% Off Weekend Stays',     cid:'EMSK_MA_BOGO_MAY24',  mech:'BOGO',      tiers:['Gold','Plat'],   region:['Dubai','Abu Dhabi'],            range:{kind:'range', from:'May 1', to:'Jun 30'},               sig:'trending', kind:'live',     health:87, delta:12, trophy:false },
+    { id:2, code:'CA', sponsor:'Careem',          cat:'Rides',          offer:'10% Cashback on Every Ride',      cid:'EMSK_CA_EARN_MAY24',  mech:'Cashback',  tiers:['Blue','Silver'], region:['Dubai','Sharjah'],              range:{kind:'range', from:'May 5', to:'Jun 15'},               sig:'fast',     kind:'live',     health:74, delta:8,  trophy:false },
+    { id:3, code:'NO', sponsor:'Noon',            cat:'E-commerce',     offer:'3× Miles on All Bookings',        cid:'EMSK_NO_RAM_MAY24',   mech:'Points ×N', tiers:['All Tiers'],     region:['All UAE'],                      range:{kind:'range-expiring', from:'May 5', to:'Jun 15', expires:'12d'}, sig:'losing',   kind:'live',     health:41, delta:-15,trophy:true  },
+    { id:4, code:'CF', sponsor:'Cult.fit',        cat:'Lifestyle',      offer:'1 Month Free Cult.fit Access',    cid:'EMSK_CF_FIT_MAY24',   mech:'Voucher',   tiers:['Gold'],          region:['Dubai'],                        range:{kind:'range', from:'May 10', to:'Jul 31'},              sig:'elite',    kind:'live',     health:81, delta:5,  trophy:false },
+    { id:5, code:'BM', sponsor:'BookMyShow',      cat:'Entertainment',  offer:'Buy 2 Tickets Get 1 Free',        cid:'EMSK_BM_EXP_MAY24',   mech:'BOGO',      tiers:['Silver','Gold'], region:['Dubai','Abu Dhabi'],            range:{kind:'expiring', label:'4 days left'},                  sig:'expiring', kind:'live',     health:89, delta:0,  trophy:false },
+    { id:6, code:'EM', sponsor:'Emirates',        cat:'Travel',         offer:'Complimentary Business Upgrade',  cid:'EMSK_EM_BIZ_APR24',   mech:'BOGO',      tiers:['Platinum'],      region:['DXB','AUH'],                    range:{kind:'range', from:'Apr 1', to:'Jun 30'},               sig:null,       kind:'live',     health:63, delta:0,  trophy:false },
+    { id:7, code:'CH', sponsor:'Chalhoub',        cat:'Luxury',         offer:'20% Off Luxury Collections',      cid:'EMSK_CH_LUX_JUN24',   mech:'Flat Off',  tiers:['Gold','Plat'],   region:['Dubai'],                        range:{kind:'starts', label:'Starts Jun 1'},                   sig:null,       kind:'scheduled',health:null,delta:0, trophy:false },
+    { id:8, code:'NO', sponsor:'Noon',            cat:'E-commerce',     offer:'Eid Exclusive Gift Voucher',      cid:'EMSK_NO_EID_APR24',   mech:'Voucher',   tiers:['All Tiers'],     region:['All UAE'],                      range:{kind:'ended', label:'Ended Apr 25'},                    sig:null,       kind:'ended',    health:null,delta:0, trophy:false },
   ];
 
   // Apply tabs + applied filters to compute visible rows
@@ -178,17 +178,27 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
             </div>
             {rows.map(r => {
               const si = statusInfo(r.kind);
-              const tl = r.range || '';
-              const tlEl = tl.startsWith('⏳') ? <span style={{color:'var(--accent-amber)', fontSize:11}}>{tl}</span>
-                         : tl.startsWith('Starts') ? <span style={{color:'var(--accent-blue)', fontSize:11}}>{tl}</span>
-                         : tl.startsWith('Ended') ? <span style={{color:'var(--text-muted)', fontSize:11, opacity:0.6}}>{tl}</span>
-                         : tl.includes(' · ') ? (
-                             <span style={{fontSize:11}}>
-                               <span style={{color:'var(--text-secondary)'}}>{tl.split(' · ')[0]}</span>
-                               {' '}<span style={{color:'var(--accent-amber)'}}>⏳ {tl.split(' · ')[1]}</span>
+              const tl = r.range || {kind:'plain', label:''};
+              const tlEl = tl.kind === 'expiring' ? (
+                             <span style={{display:'inline-flex', alignItems:'center', gap:4, color:'var(--accent-amber)', fontSize:11}}>
+                               <Icon name="Clock" size={11}/>{tl.label}
                              </span>
                            )
-                         : <span style={{color:'var(--text-secondary)', fontSize:11}}>{tl}</span>;
+                         : tl.kind === 'starts' ? <span style={{color:'var(--accent-blue)', fontSize:11}}>{tl.label}</span>
+                         : tl.kind === 'ended' ? <span style={{color:'var(--text-muted)', fontSize:11, opacity:0.6}}>{tl.label}</span>
+                         : tl.kind === 'range-expiring' ? (
+                             <span style={{display:'inline-flex', alignItems:'center', gap:4, fontSize:11, flexWrap:'wrap'}}>
+                               <span style={{display:'inline-flex', alignItems:'center', gap:4, color:'var(--text-secondary)'}}>{tl.from} <Icon name="ArrowRight" size={10}/> {tl.to}</span>
+                               <span style={{color:'var(--text-secondary)'}}>·</span>
+                               <span style={{display:'inline-flex', alignItems:'center', gap:3, color:'var(--accent-amber)'}}><Icon name="Clock" size={11}/>{tl.expires}</span>
+                             </span>
+                           )
+                         : tl.kind === 'range' ? (
+                             <span style={{display:'inline-flex', alignItems:'center', gap:4, color:'var(--text-secondary)', fontSize:11}}>
+                               {tl.from} <Icon name="ArrowRight" size={10}/> {tl.to}
+                             </span>
+                           )
+                         : <span style={{color:'var(--text-secondary)', fontSize:11}}>{tl.label || ''}</span>;
               const validTiers = ['Blue','Silver','Gold','Platinum','Plat'];
               const tierChips = r.tiers[0] === 'All Tiers'
                 ? [<Pill key="all" kind="solid-dark" style={{fontSize:11, padding:'2px 8px', whiteSpace:'nowrap', flexShrink:0}}>All Tiers</Pill>]

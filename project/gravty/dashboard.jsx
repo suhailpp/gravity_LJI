@@ -97,12 +97,12 @@ function Dashboard({ goTo, openAi, openDrawer }) {
         {/* Metric tiles */}
         <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12}}>
           {[
-            { l:'Active Members (30d)',  v:'1.24M',  mc:'▲ 3.1%', mck:'up' },
+            { l:'Active Members (30d)',  v:'1.24M',  mc:<><Icon name="ArrowUp" size={11}/> 3.1%</>, mck:'up' },
             { l:'Offers Live',           v:'34',     mc:'—',      mck:'flat' },
-            { l:'Avg Redemption Rate',   v:'12.4%',  mc:'▼ 1.8%', mck:'down' },
-            { l:'Miles Issued (MTD)',    v:'84.2M',  unit:'mi',   mc:'▲ 6.7%', mck:'up' },
-            { l:'Expiring in 7 Days',    v:'3',      mc:'⚠ attention', mck:'warn', click:()=>goTo('offers',{view:'expiring'}) },
-            { l:'Rewards Triggered',     v:'2,847',  mc:'▲ 12%',  mck:'up' },
+            { l:'Avg Redemption Rate',   v:'12.4%',  mc:<><Icon name="ArrowDown" size={11}/> 1.8%</>, mck:'down' },
+            { l:'Miles Issued (MTD)',    v:'84.2M',  unit:'mi',   mc:<><Icon name="ArrowUp" size={11}/> 6.7%</>, mck:'up' },
+            { l:'Expiring in 7 Days',    v:'3',      mc:<><Icon name="AlertTriangle" size={11}/> attention</>, mck:'warn', click:()=>goTo('offers',{view:'expiring'}) },
+            { l:'Rewards Triggered',     v:'2,847',  mc:<><Icon name="ArrowUp" size={11}/> 12%</>,  mck:'up' },
           ].map((t,i)=>(
             <MetricTile key={i} label={t.l} value={t.v} unit={t.unit}
                         change={t.mc} changeKind={t.mck} onClick={t.click}/>
@@ -124,7 +124,7 @@ function Dashboard({ goTo, openAi, openDrawer }) {
                   <div key={di} className="heat-cell"
                        style={{background:`rgba(${tierBase[tier]}, ${v})`}}>
                     {tier==='Gold' && days[di]==='Thu' && (
-                      <div className="heat-tip">{tier} Tier · {days[di]} · 142 redemptions · ↓67% below peak</div>
+                      <div className="heat-tip" style={{display:'inline-flex', alignItems:'center', gap:4}}>{tier} Tier · {days[di]} · 142 redemptions · <Icon name="ArrowDown" size={10}/>67% below peak</div>
                     )}
                   </div>
                 ))}

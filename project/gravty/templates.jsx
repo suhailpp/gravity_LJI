@@ -31,14 +31,14 @@ function TemplateSelector({ goTo }) {
           highlighted
           title="Start from a Template"
           subtitle="Pre-built offer structures for common loyalty goals. Fully customizable."
-          ctaLabel="Browse Templates ↓"
+          ctaLabel={<>Browse Templates <Icon name="ArrowDown" size={12}/></>}
           onCTA={() => document.getElementById('tpl-grid')?.scrollIntoView({behavior:'smooth', block:'start'})}
           art={<TemplateArt/>}
         />
         <PathCard
           title="Build from Scratch"
           subtitle="Full control from the ground up. Best for custom mechanics and unique sponsor deals."
-          ctaLabel="Start Blank →"
+          ctaLabel={<>Start Blank <Icon name="ArrowRight" size={12}/></>}
           onCTA={()=>goTo('editor', {blank:true})}
           art={<BlankArt/>}
         />
@@ -48,7 +48,7 @@ function TemplateSelector({ goTo }) {
       <div className="ai-insight" style={{marginBottom:20}}>
         <span className="sigil">✦</span>
         <span style={{flex:1}}>Based on your Gold tier redemption gap, <b>Re-engagement templates</b> are recommended for your program right now.</span>
-        <Btn sm onClick={()=>setFilter('Re-engagement')}>Apply Filter →</Btn>
+        <Btn sm onClick={()=>setFilter('Re-engagement')}>Apply Filter <Icon name="ArrowRight" size={12}/></Btn>
       </div>
 
       {/* Filter pills */}

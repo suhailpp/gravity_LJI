@@ -168,8 +168,11 @@ function RelationshipGraph({
     draft: 'Draft', paused: 'Paused', ended: 'Ended'
   };
   const signalMap = {
-    trending: '🔥 Trending', fast: '⚡ Fast Growing', losing: '↘ Losing Momentum',
-    elite: '★ Elite Favorite', expiring: '⏳ Expiring Soon'
+    trending: <><Icon name="TrendingUp" size={11}/> Trending</>,
+    fast:     <><Icon name="Zap" size={11}/> Fast Growing</>,
+    losing:   <><Icon name="TrendingDown" size={11}/> Losing Momentum</>,
+    elite:    <><Icon name="Star" size={11}/> Elite Favorite</>,
+    expiring: <><Icon name="Clock" size={11}/> Expiring Soon</>,
   };
 
   // Viewport-aware tooltip position
@@ -346,7 +349,7 @@ function RelationshipGraph({
             )}
           </div>
           {tooltip.node.signal && (
-            <div style={{marginTop:5, fontSize:11, color:'var(--text-secondary)'}}>
+            <div style={{marginTop:5, fontSize:11, color:'var(--text-secondary)', display:'inline-flex', alignItems:'center', gap:4}}>
               {signalMap[tooltip.node.signal] || ''}
             </div>
           )}

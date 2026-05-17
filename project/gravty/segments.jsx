@@ -63,8 +63,9 @@ function Segments({ goTo, openDrawer }) {
                   {s.overlap && (
                     <div style={{marginTop:5, maxWidth:'100%', minWidth:0}}>
                       <span className="overlap-chip"
+                            style={{display:'inline-flex', alignItems:'center', gap:4}}
                             title={`${s.overlapPct}% of these members also belong to "${s.overlap}". Members may receive duplicate communications.`}>
-                        ⚠ {s.overlapPct}% overlap with {s.overlap}
+                        <Icon name="AlertTriangle" size={12}/> {s.overlapPct}% overlap with {s.overlap}
                       </span>
                     </div>
                   )}
@@ -147,7 +148,7 @@ function Segments({ goTo, openDrawer }) {
   );
 }
 
-// ─── Segment → Offer relationship map ───
+// ─── Segment to Offer relationship map ───
 function RelationshipMap({ segment, onClose, onOfferClick }) {
   const nodes = segment.offers.map((o, i) => ({
     id: i + 1,

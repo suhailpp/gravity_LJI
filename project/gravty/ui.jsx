@@ -1,28 +1,154 @@
 // ============ GRAVTY · Shared UI ============
 const { useState, useEffect, useRef, useMemo, useLayoutEffect } = React;
 
-// ─── Design Tokens ─────────────────────────
-const COLORS = {
-  bgBase:        '#0A0C10',
-  bgSurface:     '#111318',
-  bgElevated:    '#181C24',
-  border:        '#252A35',
-  textPrimary:   '#F0F2F7',
-  textSecondary: '#8892A4',
-  textMuted:     '#4A5568',
-  gold:          '#D4A853',
-  green:         '#2DD4A0',
-  amber:         '#F59E0B',
-  orange:        '#F97316',
-  red:           '#F26B6B',
-  blue:          '#4A90D9',
+// ============================================================
+// DESIGN TOKENS — Raycast dark + custom GRAVTY light
+// Mirrors CSS variables in gravty.css. JS access for inline styles.
+// CSS variables are the source of truth for the visual layer.
+// ============================================================
+
+const THEME = {
+  dark: {
+    canvas:          '#07080a',
+    surface:         '#0d0d0d',
+    surfaceElevated: '#101111',
+    surfaceCard:     '#121212',
+    hairline:        '#242728',
+    hairlineSoft:    'rgba(255,255,255,0.08)',
+    hairlineStrong:  'rgba(255,255,255,0.16)',
+    ink:             '#f4f4f6',
+    body:            '#cdcdcd',
+    charcoal:        '#d3d3d4',
+    mute:            '#9c9c9d',
+    ash:             '#6a6b6c',
+    stone:           '#434345',
+    onDark:          '#ffffff',
+    onDarkMute:      'rgba(255,255,255,0.72)',
+    primary:         '#ffffff',
+    primaryPressed:  '#e8e8e8',
+    onPrimary:       '#000000',
+    accentGold:      '#E8B563',
+    accentGoldSoft:  'rgba(232,181,99,0.15)',
+    accentBlue:      '#57c1ff',
+    accentBlueSoft:  'rgba(87,193,255,0.15)',
+    accentRed:       '#ff6161',
+    accentRedSoft:   'rgba(255,97,97,0.15)',
+    accentGreen:     '#59d499',
+    accentGreenSoft: 'rgba(89,212,153,0.15)',
+    accentYellow:    '#ffc533',
+    accentYellowSoft:'rgba(255,197,51,0.15)',
+    accentOrange:    '#ff9500',
+  },
+  light: {
+    canvas:          '#F4F5F7',
+    surface:         '#FFFFFF',
+    surfaceElevated: '#ECEEF1',
+    surfaceCard:     '#E4E6EA',
+    hairline:        '#E2E4E9',
+    hairlineSoft:    'rgba(0,0,0,0.06)',
+    hairlineStrong:  'rgba(0,0,0,0.12)',
+    ink:             '#0A0C10',
+    body:            '#2D3340',
+    charcoal:        '#3D4454',
+    mute:            '#6B7280',
+    ash:             '#9CA3AF',
+    stone:           '#D1D5DB',
+    onDark:          '#0A0C10',
+    onDarkMute:      'rgba(10,12,16,0.72)',
+    primary:         '#0A0C10',
+    primaryPressed:  '#1C2028',
+    onPrimary:       '#ffffff',
+    accentGold:      '#B88735',
+    accentGoldSoft:  'rgba(184,135,53,0.12)',
+    accentBlue:      '#0EA5E9',
+    accentBlueSoft:  'rgba(14,165,233,0.12)',
+    accentRed:       '#EF4444',
+    accentRedSoft:   'rgba(239,68,68,0.12)',
+    accentGreen:     '#10B981',
+    accentGreenSoft: 'rgba(16,185,129,0.12)',
+    accentYellow:    '#F59E0B',
+    accentYellowSoft:'rgba(245,158,11,0.12)',
+    accentOrange:    '#EA580C',
+  },
 };
 
+// Read active theme from document attribute (app.jsx sets data-theme).
+const getTheme = () => {
+  const mode = (typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme')) || 'dark';
+  return mode === 'light' ? THEME.light : THEME.dark;
+};
+
+const TYPOGRAPHY = {
+  sans:  "'Inter', 'Inter Fallback', system-ui, sans-serif",
+  mono:  "'JetBrains Mono', 'Geist Mono', monospace",
+  features: '"calt", "kern", "liga", "ss03"',
+  displayXl:    { size: '64px', weight: 600, lineHeight: 1.1,  letterSpacing: '0' },
+  displayLg:    { size: '56px', weight: 500, lineHeight: 1.17, letterSpacing: '0.2px' },
+  headingXl:    { size: '24px', weight: 500, lineHeight: 1.6,  letterSpacing: '0.2px' },
+  headingLg:    { size: '22px', weight: 500, lineHeight: 1.15, letterSpacing: '0' },
+  headingMd:    { size: '20px', weight: 500, lineHeight: 1.4,  letterSpacing: '0.2px' },
+  headingSm:    { size: '18px', weight: 500, lineHeight: 1.4,  letterSpacing: '0.2px' },
+  bodyLg:       { size: '18px', weight: 400, lineHeight: 1.6,  letterSpacing: '0' },
+  bodyMd:       { size: '16px', weight: 400, lineHeight: 1.6,  letterSpacing: '0' },
+  bodyStrong:   { size: '16px', weight: 500, lineHeight: 1.4,  letterSpacing: '0.2px' },
+  bodySm:       { size: '14px', weight: 400, lineHeight: 1.6,  letterSpacing: '0' },
+  bodySmStrong: { size: '14px', weight: 500, lineHeight: 1.6,  letterSpacing: '0.2px' },
+  captionMd:    { size: '13px', weight: 400, lineHeight: 1.4,  letterSpacing: '0.1px' },
+  captionSm:    { size: '12px', weight: 400, lineHeight: 1.5,  letterSpacing: '0.4px' },
+  buttonMd:     { size: '14px', weight: 500, lineHeight: 1.6,  letterSpacing: '0.2px' },
+};
+
+const SPACING = {
+  xxs: '2px', xs: '4px', sm: '8px', md: '12px',
+  lg: '16px', xl: '24px', xxl: '32px', section: '96px',
+};
+
+const RADIUS = {
+  none: '0px', xs: '4px', sm: '6px', md: '8px', lg: '10px', xl: '16px', full: '9999px',
+};
+
+const MOTION = {
+  curve: {
+    default: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    enter:   'cubic-bezier(0, 0, 0.2, 1)',
+    exit:    'cubic-bezier(0.4, 0, 1, 1)',
+    spring:  'cubic-bezier(0.34, 1.56, 0.64, 1)',
+  },
+  duration: { instant:'0ms', fast:'100ms', default:'180ms', medium:'250ms', slow:'400ms' },
+  transition: {
+    default:  'all 180ms cubic-bezier(0.4, 0, 0.2, 1)',
+    fast:     'all 100ms cubic-bezier(0.4, 0, 0.2, 1)',
+    medium:   'all 250ms cubic-bezier(0, 0, 0.2, 1)',
+    slow:     'all 400ms cubic-bezier(0.4, 0, 0.2, 1)',
+    colors:   'background-color 180ms cubic-bezier(0.4, 0, 0.2, 1), border-color 180ms cubic-bezier(0.4, 0, 0.2, 1)',
+    transform:'transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+  },
+};
+
+// Legacy COLORS map — preserved for any direct consumers (read-only mirror of dark theme).
+const COLORS = {
+  bgBase:        THEME.dark.canvas,
+  bgSurface:     THEME.dark.surface,
+  bgElevated:    THEME.dark.surfaceElevated,
+  border:        THEME.dark.hairline,
+  textPrimary:   THEME.dark.ink,
+  textSecondary: THEME.dark.mute,
+  textMuted:     THEME.dark.ash,
+  gold:          THEME.dark.accentGold,
+  green:         THEME.dark.accentGreen,
+  amber:         THEME.dark.accentYellow,
+  orange:        THEME.dark.accentOrange,
+  red:           THEME.dark.accentRed,
+  blue:          THEME.dark.accentBlue,
+};
+
+// Health score — semantic mapping (consistent across modes)
 const HEALTH_COLOR = (score) => {
-  if (score >= 80) return COLORS.green;
-  if (score >= 60) return COLORS.amber;
-  if (score >= 40) return COLORS.orange;
-  return COLORS.red;
+  if (score == null) return 'var(--text-muted)';
+  if (score >= 80) return THEME.dark.accentGreen;
+  if (score >= 60) return THEME.dark.accentYellow;
+  if (score >= 40) return THEME.dark.accentOrange;
+  return THEME.dark.accentRed;
 };
 
 // ─── Icons (inline SVG, lucide-style) ───────────────────
@@ -76,6 +202,13 @@ const Icon = ({ name, size = 16, stroke = 1.6, color }) => {
     Send: <><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>,
     ArrowLeft: <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
     Trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>,
+    Zap: <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>,
+    Star: <><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>,
+    Timer: <><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3l-1 2"/><path d="M19 3l1 2"/><path d="M9 3h6"/></>,
+    Flame: <><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></>,
+    ChevronLeft: <><polyline points="15 18 9 12 15 6"/></>,
+    Minus: <><line x1="5" y1="12" x2="19" y2="12"/></>,
+    ArrowUp: <><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -88,7 +221,7 @@ const Icon = ({ name, size = 16, stroke = 1.6, color }) => {
 
 // ─── Sigil ───────────────────────────────
 const Sigil = ({ size = 14, color }) => (
-  <span style={{ color: color || 'var(--accent-gold)', fontSize: size, fontFamily: 'Sora, sans-serif', display:'inline-block', lineHeight: 1 }}>✦</span>
+  <span style={{ color: color || 'var(--accent-gold)', fontSize: size, fontFamily: 'Inter, system-ui, sans-serif', display:'inline-block', lineHeight: 1 }}>✦</span>
 );
 
 // ─── Pill ─────────────────────────────────
@@ -115,7 +248,7 @@ const Toggle = ({ on, onToggle, label }) =>
     {label && <span style={{fontSize:12, color:'var(--text-secondary)'}}>{label}</span>}
   </span>;
 
-// ─── Brand → logo URL map ────────────────
+// ─── Brand to logo URL map ────────────────
 const BRAND_LOGOS = {
   'Marriott Bonvoy':  'https://www.google.com/s2/favicons?sz=128&domain=marriott.com',
   'Marriott':         'https://www.google.com/s2/favicons?sz=128&domain=marriott.com',
@@ -168,7 +301,6 @@ const HealthDonut = ({ value, delta, size = 'md' }) => {
   const isLg = size === 'lg';
   const W = isLg ? 140 : 120;
   const arcH = W / 2;
-  const totalH = arcH + 44;
   const cx = W / 2, cy = arcH;
   const r = (W / 2) - 14;
   const sw = 10;
@@ -176,25 +308,23 @@ const HealthDonut = ({ value, delta, size = 'md' }) => {
   const pct = Math.max(0, Math.min(100, value)) / 100;
   const stroke = getHealthColor(value);
   return (
-    <div className="health-donut">
-      <svg width={W} height={totalH} viewBox={`0 0 ${W} ${totalH}`}>
+    <div className="health-donut" style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
+      <svg width={W} height={arcH + 4} viewBox={`0 0 ${W} ${arcH + 4}`}>
         <path d={`M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`}
-              fill="none" stroke="#252A35" strokeWidth={sw} strokeLinecap="round"/>
+              fill="none" stroke="var(--border-default)" strokeWidth={sw} strokeLinecap="round"/>
         <path d={`M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`}
               fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round"
               strokeDasharray={circ} strokeDashoffset={circ * (1-pct)}
               style={{transition:'stroke-dashoffset .5s ease, stroke .3s ease'}}/>
-        <text x={cx} y={cy + 24} textAnchor="middle"
-              fontFamily="Sora, sans-serif" fontWeight="700" fontSize={26}
-              fill={stroke}>{value}</text>
-        {delta != null && delta !== 0 && (
-          <text x={cx} y={cy + 40} textAnchor="middle"
-                fontFamily="DM Sans, sans-serif" fontSize={11} fontWeight="500"
-                fill={delta > 0 ? '#2DD4A0' : '#F26B6B'}>
-            {delta > 0 ? '↑' : '↓'}{Math.abs(delta)} vs yesterday
-          </text>
-        )}
       </svg>
+      <div style={{fontFamily:'Inter, system-ui, sans-serif', fontWeight:700, fontSize:26, color:stroke, lineHeight:1, marginTop:-6}}>{value}</div>
+      {delta != null && delta !== 0 && (
+        <div style={{display:'inline-flex', alignItems:'center', gap:3, marginTop:4,
+                     fontFamily:'Inter, system-ui, sans-serif', fontSize:11, fontWeight:500,
+                     color: delta > 0 ? 'var(--accent-green)' : 'var(--accent-red)'}}>
+          <Icon name={delta > 0 ? 'ArrowUp' : 'ArrowDown'} size={10}/>{Math.abs(delta)} vs yesterday
+        </div>
+      )}
     </div>
   );
 };
@@ -205,10 +335,10 @@ const HealthNumber = ({ value, delta }) => {
   const color = getHealthColor(value);
   return (
     <span style={{display:'inline-flex', flexDirection:'column', alignItems:'flex-end', gap:2, lineHeight:1}}>
-      <span style={{fontFamily:'Sora, sans-serif', fontWeight:700, fontSize:18, color}}>{value}</span>
+      <span style={{fontFamily:'Inter, system-ui, sans-serif', fontWeight:700, fontSize:18, color}}>{value}</span>
       {delta != null && delta !== 0 && (
-        <span style={{fontSize:10, color: delta > 0 ? '#2DD4A0' : '#F26B6B', fontWeight:500}}>
-          {delta > 0 ? '↑' : '↓'}{Math.abs(delta)}
+        <span style={{display:'inline-flex', alignItems:'center', gap:2, fontSize:10, color: delta > 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight:500}}>
+          <Icon name={delta > 0 ? 'ArrowUp' : 'ArrowDown'} size={10}/>{Math.abs(delta)}
         </span>
       )}
     </span>
@@ -230,15 +360,15 @@ const MiniHealth = ({ value, delta }) => {
   return (
     <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:2}}>
       <svg width="80" height="40" viewBox="0 0 80 40" style={{overflow:'visible', display:'block'}}>
-        <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke="#252A35" strokeWidth={sw} strokeLinecap="round"/>
+        <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke="var(--border-default)" strokeWidth={sw} strokeLinecap="round"/>
         <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke={hc} strokeWidth={sw} strokeLinecap="round"
               strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
               style={{transition:'stroke-dashoffset .5s ease'}}/>
       </svg>
-      <span style={{fontFamily:'Sora, sans-serif', fontWeight:700, fontSize:16, color:hc, lineHeight:1}}>{value}</span>
+      <span style={{fontFamily:'Inter, system-ui, sans-serif', fontWeight:700, fontSize:16, color:hc, lineHeight:1}}>{value}</span>
       {delta != null && delta !== 0 && (
-        <span style={{fontSize:11, fontWeight:500, color: delta > 0 ? '#2DD4A0' : '#F26B6B', lineHeight:1}}>
-          {delta > 0 ? '↑' : '↓'}{Math.abs(delta)}
+        <span style={{display:'inline-flex', alignItems:'center', gap:2, fontSize:11, fontWeight:500, color: delta > 0 ? 'var(--accent-green)' : 'var(--accent-red)', lineHeight:1}}>
+          <Icon name={delta > 0 ? 'ArrowUp' : 'ArrowDown'} size={10}/>{Math.abs(delta)}
         </span>
       )}
     </div>
@@ -249,14 +379,16 @@ const MiniHealth = ({ value, delta }) => {
 const SignalBadge = ({ signal }) => {
   if (!signal) return <span style={{color:'var(--text-muted)', fontSize:12}}>—</span>;
   const map = {
-    trending:    { kind: 'amber',  glyph: '🔥', label: 'Trending' },
-    fast:        { kind: 'blue',   glyph: '⚡', label: 'Fast Growing' },
-    losing:      { kind: 'red',    glyph: '↘',  label: 'Losing Momentum' },
-    elite:       { kind: 'gold',   glyph: '★',  label: 'Elite Favorite' },
-    expiring:    { kind: 'orange', glyph: '⏳', label: 'Expiring Soon' },
+    trending:    { kind: 'amber',  icon: 'TrendingUp',   label: 'Trending' },
+    fast:        { kind: 'blue',   icon: 'Zap',          label: 'Fast Growing' },
+    losing:      { kind: 'red',    icon: 'TrendingDown', label: 'Losing Momentum' },
+    elite:       { kind: 'gold',   icon: 'Star',         label: 'Elite Favorite' },
+    expiring:    { kind: 'orange', icon: 'Clock',        label: 'Expiring Soon' },
+    regional:    { kind: 'green',  icon: 'Globe',        label: 'Regional Spike' },
   };
   const s = map[signal];
-  return <Pill kind={s.kind}><span style={{fontSize:11}}>{s.glyph}</span>{s.label}</Pill>;
+  if (!s) return <span style={{color:'var(--text-disabled)', fontSize:12}}>—</span>;
+  return <Pill kind={s.kind}><Icon name={s.icon} size={13}/>{s.label}</Pill>;
 };
 
 // ─── Status with dot ────────────────────
@@ -276,8 +408,8 @@ function useToast() { return React.useContext(ToastContext); }
 
 // ─── TableRowActions ────────────────────
 // Wraps a row's quick-action icons. Hover behavior comes from
-// .tbl-row:hover .row-actions in gravty.css (opacity 0→1,
-// visibility hidden→visible, no transition). The actions sit in
+// .tbl-row:hover .row-actions in gravty.css (opacity 0to1,
+// visibility hiddentovisible, no transition). The actions sit in
 // the grid cell with margin-left:auto so they hug the right edge
 // without breaking the grid layout that each table relies on.
 // Declared as `function` (hoisted, attached to window) to match
@@ -329,15 +461,15 @@ function TablePagination({ total, noun = 'items', pageSize = 25, currentPage = 1
         <span>Showing {start}–{end} of {total} {noun}</span>
       </div>
       <div className="row gap-6">
-        <span style={{cursor: currentPage === 1 ? 'default' : 'pointer', opacity: currentPage === 1 ? 0.4 : 1}}
-              onClick={() => go(currentPage - 1)}>‹ Prev</span>
+        <span style={{display:'inline-flex', alignItems:'center', gap:4, cursor: currentPage === 1 ? 'default' : 'pointer', opacity: currentPage === 1 ? 0.4 : 1}}
+              onClick={() => go(currentPage - 1)}><Icon name="ChevronLeft" size={14}/>Prev</span>
         {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
           p === currentPage
             ? <Pill key={p} kind="solid-gold">{p}</Pill>
             : <span key={p} style={{padding:'4px 10px', cursor:'pointer'}} onClick={() => go(p)}>{p}</span>
         ))}
-        <span style={{cursor: currentPage === totalPages ? 'default' : 'pointer', opacity: currentPage === totalPages ? 0.4 : 1}}
-              onClick={() => go(currentPage + 1)}>Next ›</span>
+        <span style={{display:'inline-flex', alignItems:'center', gap:4, cursor: currentPage === totalPages ? 'default' : 'pointer', opacity: currentPage === totalPages ? 0.4 : 1}}
+              onClick={() => go(currentPage + 1)}>Next<Icon name="ChevronRight" size={14}/></span>
       </div>
     </div>
   );
@@ -347,8 +479,8 @@ function TablePagination({ total, noun = 'items', pageSize = 25, currentPage = 1
 // Shared offer-summary card. `c` is the offer record (brand, code,
 // name, mech, tiers, region, health, delta, sig, pct, q, cat).
 // Layout: header row (logo + brand/cat on left; signal badge +
-// hover-only Edit/More icons on right) → title → pills → region →
-// centered health donut with breathing room → redemption bar.
+// hover-only Edit/More icons on right) to title to pills to region to
+// centered health donut with breathing room to redemption bar.
 // Hover reveals quick-action icons (no transition, instant).
 function OfferCard({ c, onClick }) {
   const [hovered, setHovered] = useState(false);
@@ -530,7 +662,7 @@ function InsightCard({ tone = 'blue', icon, headline, body, ctaLabel, onClick })
 // ─── MetricTile ──────────────────────────
 // KPI tile with label / value / change indicator. `changeKind` drives
 // the existing `.mc.up | .down | .flat | .warn` CSS variant.
-//   <MetricTile label="Active Members" value="1.24M" change="▲ 3.1%" changeKind="up"/>
+//   <MetricTile label="Active Members" value="1.24M" change="^ 3.1%" changeKind="up"/>
 //   <MetricTile … onClick={…}/>  // tile gets `.clickable` class
 function MetricTile({ label, value, unit, change, changeKind = 'flat', onClick }) {
   return (
@@ -613,14 +745,17 @@ function TemplateCard({ template, onSelect }) {
       <div className="mute" style={{fontSize:13, lineHeight:1.5}}>{t.desc}</div>
       <div className="col gap-4" style={{marginTop:6}}>
         {t.meta.map((m, mi) => (
-          <div key={mi} style={{fontSize:11, color:'var(--text-secondary)'}}>
-            <span style={{color: mi === 0 ? 'var(--accent-green)' : 'var(--text-muted)'}}>{mi === 0 ? '↑' : '·'}</span> {m}
+          <div key={mi} style={{display:'flex', alignItems:'center', gap:6, fontSize:11, color:'var(--text-secondary)'}}>
+            <span style={{display:'inline-flex', color: mi === 0 ? 'var(--accent-green)' : 'var(--text-muted)'}}>
+              <Icon name={mi === 0 ? 'TrendingUp' : 'Minus'} size={mi === 0 ? 11 : 10}/>
+            </span>
+            {m}
           </div>
         ))}
       </div>
       <div style={{flex:1}}/>
       <div style={{marginTop:10}}>
-        <Btn kind={t.rec ? 'primary' : ''} sm onClick={() => onSelect && onSelect(t)}>Use This Template →</Btn>
+        <Btn kind={t.rec ? 'primary' : ''} sm onClick={() => onSelect && onSelect(t)}>Use This Template <Icon name="ArrowRight" size={12}/></Btn>
       </div>
     </div>
   );
@@ -665,7 +800,7 @@ function PageLayout({ children }) {
 }
 
 // ─── PageHeader ──────────────────────────
-// Consistent screen header: optional back link → title → subtitle on
+// Consistent screen header: optional back link to title to subtitle on
 // the left; optional action group on the right.
 //   <PageHeader title="…" subtitle="…"
 //               backLabel="Back to Offers" onBack={…}
@@ -683,7 +818,7 @@ function PageHeader({ title, subtitle, actions, backLabel, onBack }) {
           <button onClick={onBack} style={{
             background: 'none',
             border: 'none',
-            color: '#8892A4',
+            color: 'var(--text-secondary)',
             fontSize: '13px',
             cursor: 'pointer',
             padding: 0,
@@ -692,20 +827,20 @@ function PageHeader({ title, subtitle, actions, backLabel, onBack }) {
             alignItems: 'center',
             gap: '6px',
           }}>
-            ← {backLabel}
+            <Icon name="ArrowLeft" size={13}/> {backLabel}
           </button>
         )}
-        <h1 style={{
-          fontFamily: 'Sora, sans-serif',
+        <h1 className="sora" style={{
           fontSize: '24px',
-          fontWeight: 700,
-          color: '#F0F2F7',
+          fontWeight: 600,
+          letterSpacing: '-0.01em',
+          color: 'var(--text-primary)',
           margin: 0,
         }}>{title}</h1>
         {subtitle && (
           <p style={{
             fontSize: '13px',
-            color: '#8892A4',
+            color: 'var(--text-secondary)',
             margin: '4px 0 0',
           }}>{subtitle}</p>
         )}
@@ -725,7 +860,10 @@ function PageHeader({ title, subtitle, actions, backLabel, onBack }) {
 
 // ─── Expose ───────────────────────────
 Object.assign(window, {
+  // Design tokens (Raycast dark + custom light)
+  THEME, getTheme, TYPOGRAPHY, SPACING, RADIUS, MOTION,
   COLORS, HEALTH_COLOR,
+  // Components
   Icon, Sigil, Pill, Btn, Toggle, Logo, HealthScore, HealthDonut, HealthNumber, MiniHealth,
   getHealthColor, SignalBadge, Status,
   ToastContext, useToast, BRAND_LOGOS, CODE_TO_BRAND, CODE_TO_SIGNAL,
