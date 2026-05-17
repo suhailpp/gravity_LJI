@@ -17,16 +17,13 @@ function TemplateSelector({ goTo }) {
   const shown = filter === 'All' ? templates : templates.filter(t => t.cat === filter);
 
   return (
-    <div className="content" style={{maxWidth:1040, margin:'0 auto'}}>
-      <div className="row gap-10" style={{paddingTop:16}}>
-        <button className="back-btn" onClick={()=>goTo('offers')}>
-          <Icon name="ArrowLeft" size={12}/> Back to Offers
-        </button>
-      </div>
-      <div className="text-c" style={{paddingTop:8, paddingBottom:24}}>
-        <h1 className="h-page">Start Your Offer</h1>
-        <div className="mute" style={{fontSize:14, marginTop:8}}>Choose how you'd like to begin</div>
-      </div>
+    <PageLayout>
+      <PageHeader
+        title="Start Your Offer"
+        subtitle="Choose how you'd like to begin"
+        backLabel="Back to Offers"
+        onBack={()=>goTo('offers')}
+      />
 
       {/* Two path cards */}
       <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, marginBottom:32}}>
@@ -69,7 +66,7 @@ function TemplateSelector({ goTo }) {
                         onSelect={(tpl) => tpl.i === 2 ? goTo('editor', {template:'tier-recovery'}) : null}/>
         ))}
       </div>
-    </div>
+    </PageLayout>
   );
 }
 

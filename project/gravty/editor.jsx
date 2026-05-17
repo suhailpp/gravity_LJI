@@ -120,22 +120,15 @@ function Editor({ goTo, initial }) {
   if (submitted) return <SubmissionConfirm goTo={goTo} published={noApproval} title={title} campaignId={campaignId}/>;
 
   return (
-    <div className="content col gap-20">
-      <div className="row between" style={{alignItems:'flex-end'}}>
-        <div className="row gap-10">
-          <button className="back-btn" onClick={()=>goTo('offers')}>
-            <Icon name="ArrowLeft" size={12}/> Back to Offers
-          </button>
-          <div style={{borderLeft:'1px solid var(--border-default)', height:24}}/>
-          <div>
-            <h1 className="h-page" style={{fontSize:24}}>{fromTemplate ? 'Tier Recovery Offer' : 'New Offer'}</h1>
-            <div className="mute" style={{fontSize:13, marginTop:4}}>
-              {fromTemplate ? 'Template pre-filled · Marriott Bonvoy · Gold tier re-engagement' : 'Build a new offer from scratch'}
-            </div>
-          </div>
-        </div>
-        <span className="mute" style={{fontSize:12}}><Icon name="Check" size={12} color="var(--accent-green)"/> Saved just now</span>
-      </div>
+    <PageLayout>
+      <div className="col gap-20">
+        <PageHeader
+          title={fromTemplate ? 'Tier Recovery Offer' : 'New Offer'}
+          subtitle={fromTemplate ? 'Template pre-filled · Marriott Bonvoy · Gold tier re-engagement' : 'Build a new offer from scratch'}
+          backLabel="Back to Offers"
+          onBack={()=>goTo('offers')}
+          actions={<span className="mute" style={{fontSize:12}}><Icon name="Check" size={12} color="var(--accent-green)"/> Saved just now</span>}
+        />
 
       {/* Step indicator */}
       <div>
@@ -156,9 +149,23 @@ function Editor({ goTo, initial }) {
         </div>
       </div>
 
-      {/* Two-panel grid */}
-      <div className="editor-grid">
-        <div className="card" style={{padding:24}}>
+      {/* Two-panel grid — when collapsed, right column shrinks to fit just the Estimate (step 2) or disappears */}
+      <div className="editor-grid" style={{gridTemplateColumns: collapsed ? (step === 2 ? '1fr 320px' : '1fr') : undefined}}>
+        <div className="card" style={{padding:24, position:'relative'}}>
+          {/* Floating collapse/expand toggle — sits on the boundary between config and preview (or right edge when collapsed) */}
+          <button
+            onClick={()=>setCollapsed(!collapsed)}
+            title={collapsed ? 'Show preview' : 'Hide preview'}
+            style={{
+              position:'absolute', right:-16, top:'50%', transform:'translateY(-50%)',
+              zIndex:10, width:32, height:32, borderRadius:'50%',
+              background:'var(--bg-elevated)', border:'1px solid var(--border-default)',
+              cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
+              color:'var(--text-secondary)', fontSize:14, fontFamily:'Sora, sans-serif',
+              padding:0
+            }}>
+            {collapsed ? '‹' : '›'}
+          </button>
           {fromTemplate && !templateBannerDismissed && (
             <div className="tpl-banner">
               <span className="sigil"><Sigil size={14}/></span>
@@ -225,29 +232,25 @@ function Editor({ goTo, initial }) {
           )}
         </div>
 
-        <div className="preview-wrap">
-          {/* EstimateBlock — always visible on step 2, no collapse */}
-          {step === 2 && (
-            <EstimateBlock
-              estimate={estimate}
-              estUpdating={estUpdating}
-              regions={regions}
-              liability={liability}
-              liabilityPulse={liabilityPulse}
-              conflict={conflict}
-              behaviours={behaviours}
-              minSpend={minSpend}/>
-          )}
+        {(!collapsed || step === 2) && (
+          <div className="preview-wrap" style={collapsed ? {opacity:1, pointerEvents:'auto', width:'auto'} : undefined}>
+            {/* EstimateBlock — always visible on step 2, even when preview is collapsed */}
+            {step === 2 && (
+              <EstimateBlock
+                estimate={estimate}
+                estUpdating={estUpdating}
+                regions={regions}
+                liability={liability}
+                liabilityPulse={liabilityPulse}
+                conflict={conflict}
+                behaviours={behaviours}
+                minSpend={minSpend}/>
+            )}
 
-          {step === 2 && <div style={{height:16}}/>}
+            {step === 2 && !collapsed && <div style={{height:16}}/>}
 
-          {/* LivePreview — independently collapsible */}
-          {!collapsed ? (
-            <div>
-              <div style={{display:'flex', justifyContent:'flex-end', marginBottom:6}}>
-                <button onClick={()=>setCollapsed(true)} title="Collapse preview"
-                        style={{background:'none', border:'1px solid var(--border-default)', borderRadius:6, width:26, height:26, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--text-secondary)', fontSize:13, fontFamily:'Sora'}}>›</button>
-              </div>
+            {/* LivePreview — only this hides when collapsed */}
+            {!collapsed && (
               <LivePreview
                 step={step}
                 previewKind={previewKind} setPreviewKind={setPreviewKind}
@@ -257,15 +260,9 @@ function Editor({ goTo, initial }) {
                 liability={liability}
                 liabilityPulse={liabilityPulse}
                 onFullPreview={()=>setFullModal(true)}/>
-            </div>
-          ) : (
-            <div onClick={()=>setCollapsed(false)} title="Show preview"
-                 style={{width:28, minHeight:180, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, background:'var(--bg-elevated)', borderRadius:8, border:'1px solid var(--border-default)', padding:'12px 0', transition:'width .2s cubic-bezier(.4,0,.2,1)'}}>
-              <span style={{fontSize:12, color:'var(--text-secondary)'}}>‹</span>
-              <span style={{writingMode:'vertical-rl', transform:'rotate(180deg)', fontSize:10, color:'var(--text-secondary)', fontFamily:'Sora, sans-serif', letterSpacing:'0.04em', userSelect:'none'}}>Preview</span>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       <EditorBottomBar
@@ -281,7 +278,8 @@ function Editor({ goTo, initial }) {
         onClose={()=>setFullModal(false)}
         mechanic={mechanic}
         tiers={tiers}/>
-    </div>
+      </div>
+    </PageLayout>
   );
 }
 
@@ -1313,7 +1311,7 @@ function FullPreviewModal({ open, onClose, mechanic, tiers }) {
 // ─── SUBMISSION CONFIRMATION ─────────────
 function SubmissionConfirm({ goTo, published, title, campaignId }) {
   return (
-    <div className="content">
+    <PageLayout>
       <div className="card" style={{maxWidth:680, margin:'30px auto', padding:'48px 36px'}}>
         <div className="success-stage">
           <div className="ring-wrap">
@@ -1350,7 +1348,7 @@ function SubmissionConfirm({ goTo, published, title, campaignId }) {
           <Btn kind="primary" onClick={()=>goTo('offers')}>Return to Offer List →</Btn>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
 

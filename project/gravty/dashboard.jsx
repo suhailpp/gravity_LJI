@@ -53,17 +53,13 @@ function Dashboard({ goTo, openAi, openDrawer }) {
   }));
 
   return (
-    <div className="content col gap-24">
-      {/* Greeting */}
-      <div className="row between" style={{alignItems:'flex-end'}}>
-        <div>
-          <h1 className="h-greet">Good morning, Priya.</h1>
-          <div className="mute" style={{fontSize:13, marginTop:6}}>
-            Tuesday, 14 May 2024 · Emirates Skywards · UAE Region
-          </div>
-        </div>
-        <Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>} onClick={()=>goTo('templates')}>Create Offer</Btn>
-      </div>
+    <PageLayout>
+      <div className="col gap-24">
+        <PageHeader
+          title="Good morning, Priya."
+          subtitle="Tuesday, 14 May 2024 · Emirates Skywards · UAE Region"
+          actions={<Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>} onClick={()=>goTo('templates')}>Create Offer</Btn>}
+        />
 
       {/* ZONE 1 — Intelligence strip */}
       <div className="col gap-12">
@@ -196,7 +192,8 @@ function Dashboard({ goTo, openAi, openDrawer }) {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </PageLayout>
   );
 }
 

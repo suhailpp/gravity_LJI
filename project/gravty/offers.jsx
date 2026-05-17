@@ -94,47 +94,51 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
     return [{i:'Edit',ic:'Edit'},{i:'More',ic:'MoreHorizontal'}];
   };
 
-  return (
-    <div className="offers-screen">
-      {/* Fixed header + tabs */}
-      <div className="offers-fixed">
-        <div className="row between" style={{alignItems:'flex-end'}}>
-          <div>
-            <h1 className="h-page" style={{fontSize:24}}>Offers</h1>
-            <div className="mute" style={{fontSize:13, marginTop:6}}>
-              34 offers active · 3 expiring this week · 2 drafts incomplete
-            </div>
-          </div>
-          <div className="row gap-10">
-            <div className="row gap-4" style={{padding:'3px',background:'var(--bg-elevated)',borderRadius:8,border:'1px solid var(--border-default)'}}>
-              <button className={"btn sm ghost"} style={{background:view==='table'?'var(--accent-gold)':'transparent',color:view==='table'?'#0A0C10':'var(--text-secondary)'}} onClick={()=>setView('table')}><Icon name="Table" size={13}/> Table</button>
-              <button className={"btn sm ghost"} style={{background:view==='map'?'var(--accent-gold)':'transparent',color:view==='map'?'#0A0C10':'var(--text-secondary)'}} onClick={()=>setView('map')}><Icon name="Map" size={13}/> Map</button>
-            </div>
-            <button className="filter-icon-btn" onClick={()=>setFilterOpen(true)} title="Filter">
-              <Icon name="Filter" size={16}/>
-              {activeFilterCount > 0 && <span className="count-badge">{activeFilterCount}</span>}
-            </button>
-            <Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>} onClick={()=>goTo('templates')}>Create Offer</Btn>
-          </div>
-        </div>
+  // Sticky offsets — app bar is 84px (shell padding-top). Page header ≈76, tab row ≈40.
+  const STICKY_TOP = 84;
+  const HEADER_H = 76;
+  const TABS_H = 40;
 
-        <div className="tab-bar" style={{marginTop:18}}>
-          {[
-            {id:'all',       label:'All Offers',  count: all.length + pendingOffers.length},
-            {id:'mine',      label:'My Offers',   count: all.filter(r=>[1,2,3].includes(r.id)).length},
-            {id:'drafts',    label:'Drafts',      count: all.filter(r => r.kind === 'draft').length},
-            {id:'scheduled', label:'Scheduled',   count: all.filter(r=>r.kind==='scheduled').length},
-            {id:'archived',  label:'Archived',    count: all.filter(r=>r.kind==='ended').length}
-          ].map(t => (
-            <div key={t.id} className={"tab " + (tab===t.id?'active':'')} onClick={()=>setTab(t.id)}>
-              {t.label} <span className="mute" style={{fontWeight:400}}>({t.count})</span>
-            </div>
-          ))}
-        </div>
+  return (
+    <PageLayout>
+      {/* Sticky page header */}
+      <div style={{position:'sticky', top:STICKY_TOP, zIndex:50, background:'var(--bg-base)', marginLeft:-40, marginRight:-40, paddingLeft:40, paddingRight:40, paddingTop:8}}>
+        <PageHeader
+          title="Offers"
+          subtitle="34 offers active · 3 expiring this week · 2 drafts incomplete"
+          actions={
+            <>
+              <div className="row gap-4" style={{padding:'3px',background:'var(--bg-elevated)',borderRadius:8,border:'1px solid var(--border-default)'}}>
+                <button className={"btn sm ghost"} style={{background:view==='table'?'var(--accent-gold)':'transparent',color:view==='table'?'#0A0C10':'var(--text-secondary)'}} onClick={()=>setView('table')}><Icon name="Table" size={13}/> Table</button>
+                <button className={"btn sm ghost"} style={{background:view==='map'?'var(--accent-gold)':'transparent',color:view==='map'?'#0A0C10':'var(--text-secondary)'}} onClick={()=>setView('map')}><Icon name="Map" size={13}/> Map</button>
+              </div>
+              <button className="filter-icon-btn" onClick={()=>setFilterOpen(true)} title="Filter">
+                <Icon name="Filter" size={16}/>
+                {activeFilterCount > 0 && <span className="count-badge">{activeFilterCount}</span>}
+              </button>
+              <Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>} onClick={()=>goTo('templates')}>Create Offer</Btn>
+            </>
+          }
+        />
+      </div>
+
+      {/* Sticky tab row */}
+      <div className="tab-bar" style={{position:'sticky', top:STICKY_TOP + HEADER_H, zIndex:49, background:'var(--bg-base)', marginLeft:-40, marginRight:-40, paddingLeft:40, paddingRight:40}}>
+        {[
+          {id:'all',       label:'All Offers',  count: all.length + pendingOffers.length},
+          {id:'mine',      label:'My Offers',   count: all.filter(r=>[1,2,3].includes(r.id)).length},
+          {id:'drafts',    label:'Drafts',      count: all.filter(r => r.kind === 'draft').length},
+          {id:'scheduled', label:'Scheduled',   count: all.filter(r=>r.kind==='scheduled').length},
+          {id:'archived',  label:'Archived',    count: all.filter(r=>r.kind==='ended').length}
+        ].map(t => (
+          <div key={t.id} className={"tab " + (tab===t.id?'active':'')} onClick={()=>setTab(t.id)}>
+            {t.label} <span className="mute" style={{fontWeight:400}}>({t.count})</span>
+          </div>
+        ))}
       </div>
 
       {/* Scrolling content */}
-      <div className="offers-scroll">
+      <div style={{paddingTop:16, paddingBottom:48}}>
         {view === 'map' && (
           <div className="col gap-12">
             <div className="mute" style={{fontSize:12}}>
@@ -158,9 +162,9 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
           </div>
         )}
         {view === 'table' && (rows.length > 0 ? (
-          <div className="tbl" style={{width:'100%', overflow:'hidden'}}>
+          <div className="tbl" style={{width:'100%', overflow:'visible'}}>
             {/* SPONSOR 90 | OFFER 1fr (truncates) | MECHANIC 90 | TIER 110 | REGION 100 | TIMELINE 110 | SIGNAL 130 | STATUS 90 | HEALTH 120 | ACTIONS 90 */}
-            <div className="tbl-head" style={{gridTemplateColumns:'90px 1fr 90px 110px 100px 110px 130px 90px 120px 90px', columnGap:'24px', padding:'8px 24px'}}>
+            <div className="tbl-head" style={{gridTemplateColumns:'90px 1fr 90px 110px 100px 110px 130px 90px 120px 90px', columnGap:'24px', padding:'8px 24px', position:'sticky', top: STICKY_TOP + HEADER_H + TABS_H, zIndex:48}}>
               <span>Sponsor</span>
               <span>Offer</span>
               <span>Mechanic</span>
@@ -264,7 +268,7 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
         matchCount={pendingMatchCount}
         onApply={applyPending}
       />
-    </div>
+    </PageLayout>
   );
 }
 

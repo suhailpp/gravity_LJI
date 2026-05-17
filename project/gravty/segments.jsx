@@ -34,14 +34,13 @@ function Segments({ goTo, openDrawer }) {
   }, [menuOpen]);
 
   return (
-    <div className="content col gap-20 has-tbl-pagination">
-      <div className="row between" style={{alignItems:'flex-end'}}>
-        <div>
-          <h1 className="h-page" style={{fontSize:24}}>Segments</h1>
-          <div className="mute" style={{fontSize:13, marginTop:6}}>Reusable audience definitions for your loyalty program</div>
-        </div>
-        <Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>}>Create Segment</Btn>
-      </div>
+    <PageLayout>
+      <div className="col gap-20 has-tbl-pagination">
+        <PageHeader
+          title="Segments"
+          subtitle="Reusable audience definitions for your loyalty program"
+          actions={<Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>}>Create Segment</Btn>}
+        />
 
       <div className="tbl">
         <div className="tbl-head" style={{gridTemplateColumns:'minmax(240px, 1.5fr) 110px 100px 130px 90px'}}>
@@ -143,7 +142,8 @@ function Segments({ goTo, openDrawer }) {
         </div>,
         document.body
       )}
-    </div>
+      </div>
+    </PageLayout>
   );
 }
 

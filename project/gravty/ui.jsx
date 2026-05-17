@@ -344,52 +344,56 @@ function TablePagination({ total, noun = 'items', pageSize = 25, currentPage = 1
 };
 
 // ─── OfferCard ───────────────────────────
-// Shared offer-summary card. Used on Dashboard zone 3; could be
-// reused anywhere we render an offer in card form. `c` is the
-// offer record (brand, code, name, mech, tiers, region, health,
-// delta, sig, pct, q, cat). Hover reveals quick-action icons.
+// Shared offer-summary card. `c` is the offer record (brand, code,
+// name, mech, tiers, region, health, delta, sig, pct, q, cat).
+// Layout: header row (logo + brand/cat on left; signal badge +
+// hover-only Edit/More icons on right) → title → pills → region →
+// centered health donut with breathing room → redemption bar.
+// Hover reveals quick-action icons (no transition, instant).
 function OfferCard({ c, onClick }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div className="card hoverable" onClick={onClick}
          onMouseEnter={() => setHovered(true)}
          onMouseLeave={() => setHovered(false)}
-         style={{display:'flex', flexDirection:'column', gap:8}}>
+         style={{display:'flex', flexDirection:'column', gap:10, padding:16}}>
 
-      {/* Row 1: Logo + Brand/Category + Signal badge top-right */}
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start'}}>
-        <div style={{display:'flex', gap:10, alignItems:'center'}}>
+      {/* HEADER — logo+brand/cat (left)  |  signal + quick actions (right) */}
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8}}>
+        <div style={{display:'flex', gap:10, alignItems:'center', minWidth:0}}>
           <Logo code={c.code} brand={c.brand}/>
-          <div>
+          <div style={{minWidth:0}}>
             <div style={{fontWeight:500, fontSize:13}}>{c.brand}</div>
             <div className="mute" style={{fontSize:11}}>{c.cat}</div>
           </div>
         </div>
-        <SignalBadge signal={c.sig}/>
+        <div style={{display:'flex', alignItems:'center', gap:6, flexShrink:0}}>
+          <SignalBadge signal={c.sig}/>
+          <div style={{opacity: hovered ? 1 : 0, display:'flex', gap:4}}>
+            <button className="btn icon-only sm ghost" onClick={(e)=>e.stopPropagation()} title="Edit"><Icon name="Edit" size={13}/></button>
+            <button className="btn icon-only sm ghost" onClick={(e)=>e.stopPropagation()} title="More"><Icon name="MoreHorizontal" size={13}/></button>
+          </div>
+        </div>
       </div>
 
-      {/* Row 2: Offer title */}
-      <div className="sora" style={{fontSize:15, fontWeight:600, lineHeight:1.3, marginTop:4}}>{c.name}</div>
+      {/* BODY — title */}
+      <div className="sora" style={{fontSize:16, fontWeight:600, lineHeight:1.3}}>{c.name}</div>
 
-      {/* Row 3: Mechanic + Tier pills */}
+      {/* BODY — mechanic + tier pills */}
       <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
         <Pill kind="solid-dark">{c.mech}</Pill>
         <Pill>{c.tiers}</Pill>
       </div>
 
-      {/* Row 4: Region */}
-      <div className="mute" style={{fontSize:11}}>{c.region}</div>
+      {/* BODY — region */}
+      <div className="mute" style={{fontSize:13}}>{c.region}</div>
 
-      {/* Row 5: Health pie (bottom-left) + Actions (bottom-right) */}
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:6}}>
+      {/* FOOTER — centered health donut with breathing room */}
+      <div style={{display:'flex', justifyContent:'center', padding:'16px 0'}}>
         <HealthDonut value={c.health} delta={c.delta} size="md"/>
-        <div style={{opacity: hovered ? 1 : 0, transition:'opacity 0.15s', display:'flex', gap:4}}>
-          <button className="btn icon-only sm ghost" onClick={(e)=>e.stopPropagation()} title="Edit"><Icon name="Edit" size={13}/></button>
-          <button className="btn icon-only sm ghost" onClick={(e)=>e.stopPropagation()} title="More"><Icon name="MoreHorizontal" size={13}/></button>
-        </div>
       </div>
 
-      {/* Row 6: Redemption bar full width */}
+      {/* FOOTER — redemption bar (full width) */}
       <div>
         <div className="progress" style={{marginBottom:5}}><div style={{width:c.pct+'%'}}/></div>
         <div style={{display:'flex', justifyContent:'space-between', fontSize:11}}>
@@ -642,6 +646,83 @@ function StatusTimeline({ nodes, style }) {
   );
 }
 
+// ─── PageLayout ──────────────────────────
+// Single source of truth for screen padding + width. `.shell` in
+// gravty.css already provides the 84px top + 56px left offset for
+// the dev-bar/top-bar/nav-rail; PageLayout only owns inner padding.
+//   <PageLayout><PageHeader …/> … </PageLayout>
+function PageLayout({ children }) {
+  return (
+    <div style={{
+      padding: '32px 40px',
+      minHeight: 'calc(100vh - 84px)',
+      boxSizing: 'border-box',
+      width: '100%',
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// ─── PageHeader ──────────────────────────
+// Consistent screen header: optional back link → title → subtitle on
+// the left; optional action group on the right.
+//   <PageHeader title="…" subtitle="…"
+//               backLabel="Back to Offers" onBack={…}
+//               actions={<Btn>+ Create</Btn>}/>
+function PageHeader({ title, subtitle, actions, backLabel, onBack }) {
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      marginBottom: '24px',
+    }}>
+      <div>
+        {backLabel && (
+          <button onClick={onBack} style={{
+            background: 'none',
+            border: 'none',
+            color: '#8892A4',
+            fontSize: '13px',
+            cursor: 'pointer',
+            padding: 0,
+            marginBottom: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}>
+            ← {backLabel}
+          </button>
+        )}
+        <h1 style={{
+          fontFamily: 'Sora, sans-serif',
+          fontSize: '24px',
+          fontWeight: 700,
+          color: '#F0F2F7',
+          margin: 0,
+        }}>{title}</h1>
+        {subtitle && (
+          <p style={{
+            fontSize: '13px',
+            color: '#8892A4',
+            margin: '4px 0 0',
+          }}>{subtitle}</p>
+        )}
+      </div>
+      {actions && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+        }}>
+          {actions}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Expose ───────────────────────────
 Object.assign(window, {
   COLORS, HEALTH_COLOR,
@@ -651,5 +732,5 @@ Object.assign(window, {
   TableRowActions, TablePagination, OfferCard,
   EmptyArt, FilterCheck, FilterChip, OfferChipRow, RadioRow,
   InsightCard, MetricTile, ViewToggle, PathCard, TemplateCard,
-  StatusTimeline
+  StatusTimeline, PageLayout, PageHeader
 });

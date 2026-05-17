@@ -35,14 +35,13 @@ function Rules() {
   }, [menuOpen]);
 
   return (
-    <div className="content col gap-20 has-tbl-pagination">
-      <div className="row between" style={{alignItems:'flex-end'}}>
-        <div>
-          <h1 className="h-page" style={{fontSize:24}}>Rules</h1>
-          <div className="mute" style={{fontSize:13, marginTop:6}}>Saved business logic for how your offers behave</div>
-        </div>
-        <Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>}>Create Rule Set</Btn>
-      </div>
+    <PageLayout>
+      <div className="col gap-20 has-tbl-pagination">
+        <PageHeader
+          title="Rules"
+          subtitle="Saved business logic for how your offers behave"
+          actions={<Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>}>Create Rule Set</Btn>}
+        />
 
       <div className="tbl">
         <div className="tbl-head" style={{gridTemplateColumns:'minmax(200px, 1fr) 80px 160px 130px 90px'}}>
@@ -157,7 +156,8 @@ function Rules() {
         </div>,
         document.body
       )}
-    </div>
+      </div>
+    </PageLayout>
   );
 }
 
