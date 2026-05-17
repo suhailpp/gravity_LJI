@@ -147,56 +147,14 @@ function Segments({ goTo, openDrawer }) {
   );
 }
 
-// ─── Inline mini relationship map for accordion right panel ───
-function SegmentMiniMap({ segment, onOfferClick }) {
-  const codeToBrand = {MA:'Marriott Bonvoy', CA:'Careem', NO:'Noon', CF:'Cult.fit', BM:'BookMyShow', EM:'Emirates', CH:'Chalhoub'};
-  const codeToSignal = {MA:'trending', CA:'fast', NO:'losing', CF:'elite', BM:'expiring', EM:'stable', CH:'stable'};
-  const nodes = segment.offers.map((o, i) => ({
-    id: i + 1, code: o.c, brand: codeToBrand[o.c], label: o.n,
-    signal: codeToSignal[o.c] || 'stable', health: o.h, status: 'live'
-  }));
-  return (
-    <RelationshipGraph
-      nodes={nodes}
-      edges={[]}
-      center={{kind:'segment', label:'members', count: segment.members > 99999 ? Math.round(segment.members/1000)+'K' : segment.members.toLocaleString()}}
-      height={280}
-      onNodeClick={() => onOfferClick && onOfferClick()}
-      emptyMsg="Not enough offers to show connections"
-    />
-  );
-}
-
-// ─── Inline offer chip row (used by Segments & Rules) ───
-function OfferChipRow({ offers, more, onClick }) {
-  const codeToBrand = {MA:'Marriott Bonvoy', CA:'Careem', NO:'Noon', CF:'Cult.fit', BM:'BookMyShow', EM:'Emirates', CH:'Chalhoub'};
-  const shown = offers.slice(0, 4);
-  const remaining = more + Math.max(0, offers.length - 4);
-  const trunc = (s, n=12) => s == null ? '' : (s.length <= n ? s : s.slice(0, n-1) + '…');
-  return (
-    <div className="offer-chip-row" style={{marginBottom:18}}>
-      {shown.map((o, i) => (
-        <div key={i} className="offer-chip" onClick={(e)=>{e.stopPropagation(); onClick && onClick(o);}}>
-          <Logo code={o.c} brand={codeToBrand[o.c]} sm/>
-          <span>{trunc(o.n, 14)}</span>
-        </div>
-      ))}
-      {remaining > 0 && <span className="offer-chip-more">+{remaining} more</span>}
-    </div>
-  );
-}
-
 // ─── Segment → Offer relationship map ───
 function RelationshipMap({ segment, onClose, onOfferClick }) {
-  const codeToBrand = {MA:'Marriott Bonvoy', CA:'Careem', NO:'Noon', CF:'Cult.fit', BM:'BookMyShow', EM:'Emirates', CH:'Chalhoub'};
-  const codeToSignal = {MA:'trending', CA:'fast', NO:'losing', CF:'elite', BM:'expiring', EM:'stable', CH:'stable'};
-
   const nodes = segment.offers.map((o, i) => ({
     id: i + 1,
     code: o.c,
-    brand: codeToBrand[o.c],
+    brand: CODE_TO_BRAND[o.c],
     label: o.n,
-    signal: codeToSignal[o.c] || 'stable',
+    signal: CODE_TO_SIGNAL[o.c] || 'stable',
     health: o.h
   }));
 
@@ -223,5 +181,3 @@ function RelationshipMap({ segment, onClose, onOfferClick }) {
 }
 
 window.Segments = Segments;
-window.RelationshipMap = RelationshipMap;
-window.OfferChipRow = OfferChipRow;

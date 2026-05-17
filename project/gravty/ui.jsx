@@ -130,6 +130,10 @@ const CODE_TO_BRAND = {
   MA:'Marriott Bonvoy', CA:'Careem', NO:'Noon', CF:'Cult.fit',
   BM:'BookMyShow', EM:'Emirates', CH:'Chalhoub'
 };
+const CODE_TO_SIGNAL = {
+  MA:'trending', CA:'fast', NO:'losing', CF:'elite',
+  BM:'expiring', EM:'stable', CH:'stable'
+};
 
 // ─── Logo bubble (image with initials fallback) ──
 const Logo = ({ code, brand, lg = false, sm = false, color, circle = true }) => {
@@ -444,12 +448,34 @@ function FilterChip({ label, active, onClick }) {
   );
 }
 
+// ─── OfferChipRow ────────────────────────
+// Horizontal row of small offer chips (logo + truncated title) with a
+// "+N more" tail when offers overflow. Used by segments and rules to
+// preview the offers attached to a segment/rule in accordion details.
+//   <OfferChipRow offers={[{c, n}]} more={2} onClick={(o)=>…}/>
+function OfferChipRow({ offers, more = 0, onClick }) {
+  const shown = offers.slice(0, 4);
+  const remaining = more + Math.max(0, offers.length - 4);
+  const trunc = (s, n = 12) => s == null ? '' : (s.length <= n ? s : s.slice(0, n - 1) + '…');
+  return (
+    <div className="offer-chip-row" style={{marginBottom:18}}>
+      {shown.map((o, i) => (
+        <div key={i} className="offer-chip" onClick={(e)=>{e.stopPropagation(); onClick && onClick(o);}}>
+          <Logo code={o.c} brand={CODE_TO_BRAND[o.c]} sm/>
+          <span>{trunc(o.n, 14)}</span>
+        </div>
+      ))}
+      {remaining > 0 && <span className="offer-chip-more">+{remaining} more</span>}
+    </div>
+  );
+}
+
 // ─── Expose ───────────────────────────
 Object.assign(window, {
   COLORS, HEALTH_COLOR,
   Icon, Sigil, Pill, Btn, Toggle, Logo, HealthScore, HealthDonut, HealthNumber, MiniHealth,
   getHealthColor, SignalBadge, Status,
-  ToastContext, useToast, BRAND_LOGOS, CODE_TO_BRAND,
+  ToastContext, useToast, BRAND_LOGOS, CODE_TO_BRAND, CODE_TO_SIGNAL,
   TableRowActions, TablePagination, OfferCard,
-  EmptyArt, FilterCheck, FilterChip
+  EmptyArt, FilterCheck, FilterChip, OfferChipRow
 });
