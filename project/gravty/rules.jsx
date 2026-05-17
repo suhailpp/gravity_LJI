@@ -45,7 +45,7 @@ function Rules() {
       </div>
 
       <div className="tbl">
-        <div className="tbl-head" style={{gridTemplateColumns:'200px 80px 160px 130px 90px'}}>
+        <div className="tbl-head" style={{gridTemplateColumns:'minmax(200px, 1fr) 80px 160px 130px 90px'}}>
           <span>Name</span>
           <span>Offers</span>
           <span>Categories</span>
@@ -54,7 +54,7 @@ function Rules() {
         </div>
         {rules.map(r => (
           <React.Fragment key={r.id}>
-            <div className="tbl-row" style={{gridTemplateColumns:'200px 80px 160px 130px 90px', padding:'12px 20px'}}
+            <div className="tbl-row" style={{gridTemplateColumns:'minmax(200px, 1fr) 80px 160px 130px 90px', padding:'12px 20px'}}
                  onClick={()=>setExpanded(expanded===r.id ? null : r.id)}>
               <div className="row gap-10">
                 <div className="logo-bubble sm" style={{background:'rgba(212,168,83,0.12)', color:'var(--accent-gold)', borderColor:'rgba(212,168,83,0.3)'}}>

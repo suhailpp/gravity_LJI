@@ -158,9 +158,9 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
           </div>
         )}
         {view === 'table' && (rows.length > 0 ? (
-          <div className="tbl" style={{overflowX:'auto'}}>
-            {/* SPONSOR 100 | OFFER 1fr | MECHANIC 90 | TIER 110 | REGION 100 | TIMELINE 110 | SIGNAL 140 | STATUS 90 | HEALTH 80 | ACTIONS 70 */}
-            <div className="tbl-head" style={{gridTemplateColumns:'100px 1fr 90px 110px 100px 110px 140px 90px 80px 70px', columnGap:'24px', minWidth:1300, padding:'8px 24px'}}>
+          <div className="tbl" style={{width:'100%', overflow:'hidden'}}>
+            {/* SPONSOR 90 | OFFER 1fr (truncates) | MECHANIC 90 | TIER 110 | REGION 100 | TIMELINE 110 | SIGNAL 130 | STATUS 90 | HEALTH 120 | ACTIONS 90 */}
+            <div className="tbl-head" style={{gridTemplateColumns:'90px 1fr 90px 110px 100px 110px 130px 90px 120px 90px', columnGap:'24px', padding:'8px 24px'}}>
               <span>Sponsor</span>
               <span>Offer</span>
               <span>Mechanic</span>
@@ -196,7 +196,7 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
               const regionShown = r.region.slice(0, 3);
               const regionExtra = r.region.length - 3;
               return (
-                <div key={r.id} className="tbl-row" style={{gridTemplateColumns:'100px 1fr 90px 110px 100px 110px 140px 90px 80px 70px', columnGap:'24px', minWidth:1300, padding:'10px 24px'}} onClick={()=>openDrawer(r.id)}>
+                <div key={r.id} className="tbl-row" style={{gridTemplateColumns:'90px 1fr 90px 110px 100px 110px 130px 90px 120px 90px', columnGap:'24px', padding:'10px 24px'}} onClick={()=>openDrawer(r.id)}>
                   {/* Sponsor — 100px */}
                   <div style={{display:'flex', gap:8, alignItems:'center', overflow:'hidden'}}>
                     <Logo code={r.code} brand={r.sponsor} style={{flexShrink:0}}/>
@@ -205,9 +205,9 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
                       <div className="mute" style={{fontSize:10}}>{r.cat}</div>
                     </div>
                   </div>
-                  {/* Offer — 1fr, no truncation */}
-                  <div style={{display:'flex', gap:4, alignItems:'center', minWidth:0}}>
-                    <span style={{fontSize:12, fontWeight:500, color:'var(--text-primary)'}}>{r.offer}</span>
+                  {/* Offer — 1fr, ellipsis truncation when too long */}
+                  <div style={{display:'flex', gap:4, alignItems:'center', minWidth:0, overflow:'hidden'}}>
+                    <span style={{fontSize:12, fontWeight:500, color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0}} title={r.offer}>{r.offer}</span>
                     {r.trophy && <span style={{color:'var(--accent-gold)', flexShrink:0}}><Icon name="Trophy" size={12}/></span>}
                   </div>
                   {/* Mechanic — 90px, outlined dashed pill */}
@@ -226,11 +226,11 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
                   <div style={{overflow:'visible', whiteSpace:'nowrap'}}><SignalBadge signal={r.sig}/></div>
                   {/* Status — 90px */}
                   <div style={{overflow:'hidden'}}><Status kind={r.kind} label={si.label}/></div>
-                  {/* Health — 80px, half-pie + score + delta */}
-                  <div style={{display:'flex', justifyContent:'center', alignItems:'flex-start', overflow:'visible'}}>
+                  {/* Health — 120px, half-pie + score + delta. overflow:visible + padding-right so the donut arc and delta never clip. */}
+                  <div style={{display:'flex', justifyContent:'center', alignItems:'flex-start', overflow:'visible', paddingRight:16}}>
                     <MiniHealth value={r.health} delta={r.delta}/>
                   </div>
-                  {/* Actions — 70px, rightmost. Hover-only via shared TableRowActions. */}
+                  {/* Actions — 90px, rightmost. Hover-only via shared TableRowActions. */}
                   <TableRowActions>
                     {stateActions(r.kind).map((a,i)=>(
                       <button key={i} className="btn icon-only sm ghost" title={a.i} onClick={(e)=>e.stopPropagation()}>

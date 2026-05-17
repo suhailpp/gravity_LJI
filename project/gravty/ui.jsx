@@ -284,7 +284,15 @@ function useToast() { return React.useContext(ToastContext); }
 // the pattern used by other cross-file shared components.
 function TableRowActions({ children, style }) {
   return (
-    <div className="row-actions" style={{ justifyContent: 'flex-end', paddingRight: 16, position: 'relative', ...style }}>
+    <div className="row-actions" style={{
+      justifyContent: 'flex-end',
+      marginLeft: 'auto',
+      paddingRight: 16,
+      minWidth: 90,
+      overflow: 'visible',
+      position: 'relative',
+      ...style
+    }}>
       {children}
     </div>
   );
