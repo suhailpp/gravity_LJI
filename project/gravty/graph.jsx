@@ -156,8 +156,9 @@ function RelationshipGraph({
 
   const truncate = (s, n = 14) => s == null ? '' : (s.length <= n ? s : s.slice(0, n - 1) + '…');
 
+  // Mirrors getHealthColor in ui.jsx (75 / 50 splits).
   const healthColor = (v) => v == null ? 'var(--text-muted)'
-    : v >= 80 ? '#2DD4A0' : v >= 60 ? '#F59E0B' : v >= 40 ? '#F97316' : '#F26B6B';
+    : v >= 75 ? '#52C08A' : v >= 50 ? '#E8A030' : '#E05252';
 
   const statusDotColors = {
     live: '#2DD4A0', scheduled: '#4A90D9', 'in-review': '#F59E0B',
@@ -168,8 +169,11 @@ function RelationshipGraph({
     draft: 'Draft', paused: 'Paused', ended: 'Ended'
   };
   const signalMap = {
-    trending: '🔥 Trending', fast: '⚡ Fast Growing', losing: '↘ Losing Momentum',
-    elite: '★ Elite Favorite', expiring: '⏳ Expiring Soon'
+    trending: <><Icon name="TrendingUp" size={11}/> Trending</>,
+    fast:     <><Icon name="Zap" size={11}/> Fast Growing</>,
+    losing:   <><Icon name="TrendingDown" size={11}/> Losing Momentum</>,
+    elite:    <><Icon name="Star" size={11}/> Elite Favorite</>,
+    expiring: <><Icon name="Clock" size={11}/> Expiring Soon</>,
   };
 
   // Viewport-aware tooltip position
@@ -346,7 +350,7 @@ function RelationshipGraph({
             )}
           </div>
           {tooltip.node.signal && (
-            <div style={{marginTop:5, fontSize:11, color:'var(--text-secondary)'}}>
+            <div style={{marginTop:5, fontSize:11, color:'var(--text-secondary)', display:'inline-flex', alignItems:'center', gap:4}}>
               {signalMap[tooltip.node.signal] || ''}
             </div>
           )}

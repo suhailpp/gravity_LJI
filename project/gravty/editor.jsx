@@ -38,7 +38,7 @@ function Editor({ goTo, initial }) {
   const [regions, setRegions] = useState(['Dubai','Abu Dhabi','Sharjah']);
   const [behaviours, setBehaviours] = useState(['Lapsed 30–90 days']);
   const [minSpend, setMinSpend] = useState('AED 500');
-  // Sample conflict: when Lapsed 90+ days AND high spend → zero-state
+  // Sample conflict: when Lapsed 90+ days AND high spend to zero-state
   const conflict = behaviours.includes('Lapsed 90+ days') && minSpend.includes('5,000');
 
   // ── Step 3: Reward Config (editable monospace fields) ──
@@ -59,7 +59,10 @@ function Editor({ goTo, initial }) {
   const [startDate, setStartDate] = useState('Jun 1, 2024');
   const [endDate, setEndDate] = useState('Jul 31, 2024');
   const [blackouts, setBlackouts] = useState([{ id:1, label:'Jun 15–17', note:'System migration', valid:true }]);
-  const [escalations, setEscalations] = useState(['At 80% quota → Notify Marketing Lead', 'At 100% → Auto-pause offer']);
+  const [escalations, setEscalations] = useState([
+    {id:'esc-80',  trigger:'At 80% quota', action:'Notify Marketing Lead'},
+    {id:'esc-100', trigger:'At 100%',      action:'Auto-pause offer'},
+  ]);
   const [redemptionLogic, setRedemptionLogic] = useState('claim');
   const [approvalChoice, setApprovalChoice] = useState('finance'); // finance | marketing | none
   const [fundingConfirmed, setFundingConfirmed] = useState(false);
@@ -137,7 +140,7 @@ function Editor({ goTo, initial }) {
             <div key={s.n} className={"step " + (step===s.n?'active':'')} onClick={()=>setStep(s.n)}>
               <div className="sn">
                 {!unsavedSteps[s.n] && s.n < step
-                  ? <span style={{color:'var(--accent-green)', marginRight:4}}>✓</span>
+                  ? <span style={{color:'var(--accent-green)', marginRight:4, display:'inline-flex'}}><Icon name="Check" size={12}/></span>
                   : <span>Step {s.n}</span>
                 }
                 {unsavedSteps[s.n] && <span className="unsaved-dot" title="Unsaved or incomplete"/>}
@@ -164,11 +167,11 @@ function Editor({ goTo, initial }) {
               color:'var(--text-secondary)', fontSize:14, fontFamily:'Sora, sans-serif',
               padding:0
             }}>
-            {collapsed ? '‹' : '›'}
+            <Icon name={collapsed ? 'ChevronLeft' : 'ChevronRight'} size={14}/>
           </button>
           {fromTemplate && !templateBannerDismissed && (
             <div className="tpl-banner">
-              <span className="sigil"><Sigil size={14}/></span>
+              <span className="sigil">✦</span>
               <span>Tier Recovery template applied — <b>8 fields pre-filled</b>. Review and adjust below.</span>
               <span className="tpl-banner-close" onClick={()=>setTemplateBannerDismissed(true)}>
                 <Icon name="X" size={12}/>
@@ -291,7 +294,7 @@ function EstimateBlock({ estimate, estUpdating, regions, liability, liabilityPul
         <div className="lbl-cap" style={{color:'var(--accent-red)', marginBottom:6}}>Audience Estimate</div>
         <div className="sora" style={{fontSize:24, fontWeight:600, color:'var(--accent-red)', lineHeight:1}}>0 members</div>
         <div style={{fontSize:12, marginTop:10, color:'var(--text-primary)', lineHeight:1.5}}>
-          <b>⚠ No members match these combined rules.</b><br/>
+          <b style={{display:'inline-flex', alignItems:'center', gap:6}}><Icon name="AlertTriangle" size={13}/> No members match these combined rules.</b><br/>
           <span style={{color:'var(--text-secondary)'}}>
             "Lapsed 90+ days" conflicts with "Min spend AED 5,000 in last 30 days" — members who lapsed are unlikely to have recent spend.
           </span>
@@ -332,7 +335,7 @@ function EditorBottomBar({ step, setStep, onSubmit, submitState, noApproval, can
     <div className="editor-bottom-bar">
       <Btn kind="ghost" onClick={()=>setStep(Math.max(1, step-1))}
            style={{opacity: step===1 ? 0.4 : 1, pointerEvents: step===1 ? 'none' : 'auto'}}>
-        ← Previous
+        <Icon name="ArrowLeft" size={13}/> Previous
       </Btn>
       <div className="editor-dots" style={{margin:'0 auto'}}>
         {[1,2,3,4,5].map(n => (
@@ -348,11 +351,11 @@ function EditorBottomBar({ step, setStep, onSubmit, submitState, noApproval, can
           <Btn kind="primary" onClick={onSubmit}
                style={{opacity: canSubmit ? 1 : 0.5, pointerEvents: canSubmit ? 'auto' : 'none'}}>
             {submitState==='submitting' ? '↻ Submitting…'
-              : submitState==='done' ? '✓ Submitted'
-              : noApproval ? 'Publish Now' : 'Submit for Approval →'}
+              : submitState==='done' ? <><Icon name="Check" size={13}/> Submitted</>
+              : noApproval ? 'Publish Now' : <>Submit for Approval <Icon name="ArrowRight" size={13}/></>}
           </Btn>
         ) : (
-          <Btn kind="primary" onClick={()=>setStep(Math.min(5, step+1))}>Continue →</Btn>
+          <Btn kind="primary" onClick={()=>setStep(Math.min(5, step+1))}>Continue <Icon name="ArrowRight" size={13}/></Btn>
         )}
       </div>
     </div>
@@ -396,7 +399,7 @@ function Step1({ title, setTitle, showAlts, setShowAlts, campaignId, setCampaign
       <div className="field">
         <div className="field-label">
           <span className="lbl">Offer Title (Public-facing)</span>
-          <span className="lnk row gap-4" onClick={()=>setShowAlts(!showAlts)}><Sigil size={11}/> Suggest Alternatives</span>
+          <span className="lnk row gap-4" onClick={()=>setShowAlts(!showAlts)} style={{color:'#8B5CF6'}}><Sigil size={11} color="#8B5CF6"/> Suggest Alternatives</span>
         </div>
         <input className="input" value={title} onChange={(e)=>setTitle(e.target.value)} style={{outline:'none'}} maxLength={120}/>
         <div className={"char-counter " + counterClass}>
@@ -515,12 +518,12 @@ function Step1({ title, setTitle, showAlts, setShowAlts, campaignId, setCampaign
           <div className="card" style={{padding:10, background:'var(--bg-overlay)'}}>
             <div className="row between" style={{padding:'10px 6px'}}>
               <span className="row gap-8" style={{fontSize:13}}><span>🇬🇧</span>English (Default)</span>
-              <Pill kind="green">✓ Complete</Pill>
+              <Pill kind="green"><Icon name="Check" size={11}/> Complete</Pill>
             </div>
             <div className="row between" style={{padding:'10px 6px', borderTop:'1px solid var(--border-subtle)', cursor:'pointer'}}
                  onClick={()=>setArabicReady(!arabicReady)}>
               <span className="row gap-8" style={{fontSize:13}}><span>🇦🇪</span>Arabic (RTL)</span>
-              <Pill kind={arabicReady?'green':'amber'}>{arabicReady ? '✓ Complete' : '⚠ Translation pending'}</Pill>
+              <Pill kind={arabicReady?'green':'amber'}>{arabicReady ? <><Icon name="Check" size={11}/> Complete</> : <><Icon name="AlertTriangle" size={11}/> Translation pending</>}</Pill>
             </div>
           </div>
         )}
@@ -608,7 +611,7 @@ function Step2({ segments, setSegments, ruleSets, setRuleSets,
       <div className="field">
         <div className="field-label">
           <span className="lbl">Who should see this offer?</span>
-          <span className="lnk">Edit rules for this offer only →</span>
+          <span className="lnk" style={{display:'inline-flex', alignItems:'center', gap:4}}>Edit rules for this offer only <Icon name="ArrowRight" size={11}/></span>
         </div>
         <div className="card" style={{padding:8, background:'var(--bg-overlay)'}}>
           {segments.map(s => (
@@ -625,7 +628,7 @@ function Step2({ segments, setSegments, ruleSets, setRuleSets,
       <div className="field">
         <div className="field-label">
           <span className="lbl">How should this offer behave?</span>
-          <span className="lnk">Edit rules for this offer only →</span>
+          <span className="lnk" style={{display:'inline-flex', alignItems:'center', gap:4}}>Edit rules for this offer only <Icon name="ArrowRight" size={11}/></span>
         </div>
         <div className="card" style={{padding:8, background:'var(--bg-overlay)'}}>
           {ruleSets.map(r => (
@@ -877,7 +880,7 @@ function Step4({ startDate, setStartDate, endDate, setEndDate,
         </div>
       </div>
 
-      <div className="ai-insight gold">
+      <div className="ai-insight">
         <span className="sigil">✦</span>
         <span>Peak UAE travel booking window is <b>June 10 – July 15</b> based on Skywards historical data. Consider prioritizing member notifications in this window.</span>
       </div>
@@ -893,7 +896,7 @@ function Step4({ startDate, setStartDate, endDate, setEndDate,
               </Pill>
               {!b.valid && (
                 <span style={{fontSize:11, color:'var(--accent-red)', marginLeft:2}}>
-                  ⚠ {b.label} is outside your offer window (Jun 1–Jul 31)
+                  <span style={{display:'inline-flex', alignItems:'center', gap:4}}><Icon name="AlertTriangle" size={11}/> {b.label} is outside your offer window (Jun 1–Jul 31)</span>
                 </span>
               )}
             </div>
@@ -960,8 +963,8 @@ function Step4({ startDate, setStartDate, endDate, setEndDate,
               <div style={{flex:1, fontSize:12}}>
                 <div style={{color:'var(--text-primary)', marginBottom:6}}>Pending — Confirmation required from Marriott Bonvoy</div>
                 <div className="row gap-12">
-                  <span className="lnk" style={{color:'var(--accent-amber)', cursor:'pointer'}} onClick={()=>setFundingConfirmed(true)}>Mark as confirmed →</span>
-                  <span className="lnk" style={{color:'var(--accent-amber)', cursor:'pointer'}}>Send Funding Request →</span>
+                  <span className="lnk" style={{display:'inline-flex', alignItems:'center', gap:4, color:'var(--accent-amber)', cursor:'pointer'}} onClick={()=>setFundingConfirmed(true)}>Mark as confirmed <Icon name="ArrowRight" size={11}/></span>
+                  <span className="lnk" style={{display:'inline-flex', alignItems:'center', gap:4, color:'var(--accent-amber)', cursor:'pointer'}}>Send Funding Request <Icon name="ArrowRight" size={11}/></span>
                 </div>
               </div>
             </>
@@ -973,12 +976,13 @@ function Step4({ startDate, setStartDate, endDate, setEndDate,
         <div className="field-label"><span className="lbl">Escalation Rules</span></div>
         <div className="row gap-6 wrap">
           {escalations.map(e => (
-            <Pill key={e} kind="solid-dark">
-              {e} <span style={{cursor:'pointer'}} onClick={()=>setEscalations(escalations.filter(x=>x!==e))}>×</span>
+            <Pill key={e.id} kind="solid-dark">
+              <span style={{display:'inline-flex', alignItems:'center', gap:4}}>{e.trigger} <Icon name="ArrowRight" size={11}/> {e.action}</span>
+              <span style={{cursor:'pointer', marginLeft:6}} onClick={()=>setEscalations(escalations.filter(x=>x.id!==e.id))}>×</span>
             </Pill>
           ))}
           <Btn sm kind="ghost" icon={<Icon name="Plus" size={11}/>}
-               onClick={()=>setEscalations([...escalations, 'At 50% quota → Send mid-offer report'])}>Add Rule</Btn>
+               onClick={()=>setEscalations([...escalations, {id:'esc-'+Date.now(), trigger:'At 50% quota', action:'Send mid-offer report'}])}>Add Rule</Btn>
         </div>
       </div>
     </div>
@@ -1005,16 +1009,16 @@ function Step5({ arabicComplete, setArabicComplete, fundingComplete, setFundingC
                 {c.ok ? <Icon name="Check" size={14} color="var(--accent-green)"/> : <Icon name="AlertTriangle" size={14} color="var(--accent-amber)"/>}
                 {c.t}
               </div>
-              <span className="btn-link">Edit →</span>
+              <span className="btn-link" style={{display:'inline-flex', alignItems:'center', gap:4}}>Edit <Icon name="ArrowRight" size={11}/></span>
             </div>
             <div className="mute" style={{fontSize:12, lineHeight:1.5}}>{c.s}</div>
           </div>
         ))}
       </div>
 
-      <div className="ai-insight gold" style={{marginTop:18, flexDirection:'column', gap:14, padding:'16px 18px', alignItems:'stretch'}}>
+      <div className="ai-insight" style={{marginTop:18, flexDirection:'column', gap:14, padding:'16px 18px', alignItems:'stretch'}}>
         <div className="row gap-8"><span className="sigil" style={{fontSize:18}}>✦</span>
-          <span className="lbl-cap" style={{color:'var(--accent-gold)'}}>AI Confidence Indicator</span>
+          <span className="lbl-cap" style={{color:'#8B5CF6'}}>AI Confidence Indicator</span>
         </div>
         <div style={{fontSize:13, color:'var(--text-secondary)'}}>Based on 14 similar offers targeting Gold tier members during peak UAE summer travel:</div>
         <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12}}>
@@ -1040,9 +1044,9 @@ function Step5({ arabicComplete, setArabicComplete, fundingComplete, setFundingC
           {ok:true, t:'Audience size sufficient for meaningful data'},
           {ok:true, t:'Reward liability within acceptable range'},
           {ok: arabicComplete, t: arabicComplete ? 'Arabic translation complete' : 'Arabic translation incomplete — English shown for Arabic speakers',
-            cta: arabicComplete ? null : 'Fix Now →', ctaFn: ()=>setArabicComplete(true)},
+            cta: arabicComplete ? null : <>Fix Now <Icon name="ArrowRight" size={11}/></>, ctaFn: ()=>setArabicComplete(true)},
           {ok: fundingComplete, t: fundingComplete ? 'Sponsor funding from Marriott Bonvoy confirmed' : 'Sponsor funding from Marriott Bonvoy pending',
-            cta: fundingComplete ? null : 'Confirm →', ctaFn: ()=>setFundingComplete(true)},
+            cta: fundingComplete ? null : <>Confirm <Icon name="ArrowRight" size={11}/></>, ctaFn: ()=>setFundingComplete(true)},
           {ok: !hasBlackoutConflict, t: hasBlackoutConflict ? 'Blackout dates have conflicts — review Step 4' : 'Blackout dates configured and conflict-free'},
           {ok:true, t:'Offer aligns with peak UAE summer window'},
           {ok:true, t:'Non-stackable rule confirmed — exclusive offer'},
@@ -1125,8 +1129,8 @@ function OfferMobileCard({ step, previewMode, setPreviewMode, mechanic, tiers, f
           {(previewMode === 'card' || !previewMode) ? (
             <div style={{padding:'14px'}}>
               <div className="row gap-6" style={{marginBottom:6, flexWrap:'wrap'}}>
-                {step >= 4 && <Pill kind="gold" style={{fontSize:9, padding:'2px 6px'}}>★ Elite Favorite</Pill>}
-                {step >= 4 && <Pill kind="orange" style={{fontSize:9, padding:'2px 6px'}}>⏳ Expiring 60 days</Pill>}
+                {step >= 4 && <Pill kind="gold" style={{fontSize:9, padding:'2px 6px'}}><Icon name="Star" size={10}/> Elite Favorite</Pill>}
+                {step >= 4 && <Pill kind="orange" style={{fontSize:9, padding:'2px 6px'}}><Icon name="Clock" size={10}/> Expiring 60 days</Pill>}
               </div>
               <div className="sora" style={{fontSize:13, fontWeight:600, marginBottom:2}}>Marriott Bonvoy</div>
               <div style={{fontSize:11, color:'var(--text-secondary)', marginBottom:10}}>Flat 50% Off Weekend Stays</div>
@@ -1151,8 +1155,8 @@ function OfferMobileCard({ step, previewMode, setPreviewMode, mechanic, tiers, f
           ) : (
             <div style={{padding:'14px'}}>
               <div className="row gap-6" style={{marginBottom:6, flexWrap:'wrap'}}>
-                <Pill kind="gold" style={{fontSize:9, padding:'2px 6px'}}>★ Elite Favorite</Pill>
-                <Pill kind="orange" style={{fontSize:9, padding:'2px 6px'}}>⏳ Expiring 60 days</Pill>
+                <Pill kind="gold" style={{fontSize:9, padding:'2px 6px'}}><Icon name="Star" size={10}/> Elite Favorite</Pill>
+                <Pill kind="orange" style={{fontSize:9, padding:'2px 6px'}}><Icon name="Clock" size={10}/> Expiring 60 days</Pill>
               </div>
               <div className="sora" style={{fontSize:13, fontWeight:600}}>Marriott Bonvoy</div>
               <div style={{fontSize:11, color:'var(--text-secondary)', marginBottom:10}}>Flat 50% Off Weekend Stays</div>
@@ -1222,8 +1226,8 @@ function OfferWebCard({ mechanic, tiers, fullSize, previewMode, setPreviewMode }
         </div>
         <div style={{padding:fullSize?28:16}}>
           <div className="row gap-6 wrap" style={{marginBottom:8}}>
-            <Pill kind="gold" style={{fontSize:10}}>★ Elite Favorite</Pill>
-            <Pill kind="orange" style={{fontSize:10}}>⏳ 60 days</Pill>
+            <Pill kind="gold" style={{fontSize:10}}><Icon name="Star" size={10}/> Elite Favorite</Pill>
+            <Pill kind="orange" style={{fontSize:10}}><Icon name="Clock" size={10}/> 60 days</Pill>
           </div>
           <div className="row between">
             <div>
@@ -1312,42 +1316,47 @@ function FullPreviewModal({ open, onClose, mechanic, tiers }) {
 function SubmissionConfirm({ goTo, published, title, campaignId }) {
   return (
     <PageLayout>
-      <div className="card" style={{maxWidth:680, margin:'30px auto', padding:'48px 36px'}}>
-        <div className="success-stage">
-          <div className="ring-wrap">
-            <div className="r-bg"/>
-            <div className="r-pulse"/>
-            <div className="r-icon"><Icon name="Check" size={42} stroke={2}/></div>
-          </div>
-          <h1 className="h-page" style={{textAlign:'center'}}>{published ? 'Offer Published' : 'Offer Submitted for Approval'}</h1>
-          <div className="mono mute" style={{fontSize:12, letterSpacing:'.05em'}}>{campaignId || 'EMSK_GOLD_RECOV_JUN24'}</div>
-          <div className="row gap-6" style={{justifyContent:'center', marginTop:4}}>
+     <div style={{display:'flex', alignItems:'center', justifyContent:'center', minHeight:'calc(100vh - 84px - 64px)'}}>
+      <div className="card" style={{maxWidth:640, width:'100%', margin:0, padding:'20px 28px', display:'flex', flexDirection:'column', alignItems:'center'}}>
+        <div className="success-stage" style={{padding:0, gap:6, width:'100%'}}>
+          <dotlottie-wc
+            src="Sources/Approve.lottie"
+            autoplay
+            loop
+            style={{width:120, height:120, display:'block'}}
+          />
+          <h1 className="h-page" style={{textAlign:'center', fontSize:22, margin:0}}>{published ? 'Offer Published' : 'Offer Submitted for Approval'}</h1>
+          <div className="mono mute" style={{fontSize:11, letterSpacing:'.05em'}}>{campaignId || 'EMSK_GOLD_RECOV_JUN24'}</div>
+          <div className="row gap-6" style={{justifyContent:'center', marginTop:2}}>
             <Pill kind="solid-dark">BOGO</Pill>
             <Pill kind="gold">Gold Tier</Pill>
             <Pill>UAE · 4 Regions</Pill>
           </div>
-          <div className="mute" style={{fontSize:13, marginTop:6, textAlign:'center'}}>
+          <div className="mute" style={{fontSize:12, marginTop:2, textAlign:'center'}}>
             {published
               ? <>Live on the platform now. Members will see it shortly.</>
               : <>Awaiting Finance review — estimated by <b style={{color:'var(--text-primary)'}}>May 16</b></>}
           </div>
         </div>
 
-        <div className="divider" style={{margin:'24px 0'}}/>
+        <div className="divider" style={{margin:'14px 0', width:'100%'}}/>
 
-        <div className="lbl-cap" style={{marginBottom:14}}>Status Timeline</div>
-        <div className="timeline">
-          <div className="tnode past"><div className="tdate">MAY 14</div><div className="ttitle">Draft Created</div></div>
-          <div className="tnode now"><div className="tdate">MAY 14 · TODAY</div><div className="ttitle">{published ? 'Published' : 'Submitted for Approval'}</div><div className="tsub">By Priya Mehta</div></div>
-          {!published && <div className="tnode future"><div className="tdate">EST. MAY 16</div><div className="ttitle">Finance Review</div></div>}
-          <div className="tnode future"><div className="tdate">SCHEDULED JUN 1</div><div className="ttitle">Offer Live</div></div>
+        <div style={{width:'100%'}}>
+          <div className="lbl-cap" style={{marginBottom:8}}>Status Timeline</div>
+          <div className="timeline">
+            <div className="tnode past"><div className="tdate">MAY 14</div><div className="ttitle">Draft Created</div></div>
+            <div className="tnode now"><div className="tdate">MAY 14 · TODAY</div><div className="ttitle">{published ? 'Published' : 'Submitted for Approval'}</div><div className="tsub">By Priya Mehta</div></div>
+            {!published && <div className="tnode future"><div className="tdate">EST. MAY 16</div><div className="ttitle">Finance Review</div></div>}
+            <div className="tnode future"><div className="tdate">SCHEDULED JUN 1</div><div className="ttitle">Offer Live</div></div>
+          </div>
         </div>
 
-        <div className="row gap-8" style={{justifyContent:'center', marginTop:32}}>
+        <div className="row gap-8" style={{justifyContent:'center', marginTop:16}}>
           <Btn kind="ghost">View Offer Details</Btn>
-          <Btn kind="primary" onClick={()=>goTo('offers')}>Return to Offer List →</Btn>
+          <Btn kind="primary" onClick={()=>goTo('offers')}>Return to Offer List <Icon name="ArrowRight" size={13}/></Btn>
         </div>
       </div>
+     </div>
     </PageLayout>
   );
 }

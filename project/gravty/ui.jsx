@@ -1,6 +1,61 @@
 // ============ GRAVTY · Shared UI ============
 const { useState, useEffect, useRef, useMemo, useLayoutEffect } = React;
 
+/* ──────────────────────────────────────────────────────────────────────
+   OFFERS_DATA — single source of truth for every offer count rendered
+   anywhere in the app. Dashboard pipeline, dashboard Live Offers grid,
+   Offer List header & tab counts, drawer detail — all derive from this.
+   No counts are hardcoded; every consumer filters this array.
+
+   Status values map to the dashboard pipeline buckets:
+     draft → "Draft", review → "Review", live → "Live",
+     scheduled (kept separate) and expired/ended → "Expired".
+   ────────────────────────────────────────────────────────────────────── */
+const OFFERS_DATA = [
+  { id:1,  code:'MA', sponsor:'Marriott Bonvoy', brand:'Marriott Bonvoy', name:'Flat 50% Off Weekend Stays',     desc:'Two-night weekend bookings at 50% off across UAE Bonvoy properties for Gold and Platinum members.', cat:'Hotels',        mech:'BOGO',      tiers:['Gold','Plat'],     region:['Dubai','Abu Dhabi'], status:'live',      signal:'trending', health:87,   delta:12,  target:96, trend7:[62,68,71,74,78,83,87], cid:'EMSK_MA_BOGO_MAY24', range:{kind:'range', from:'May 1', to:'Jun 30'},                  trophy:false },
+  { id:2,  code:'CA', sponsor:'Careem',          brand:'Careem',          name:'10% Cashback on Every Ride',     desc:'Members earn 10% Skywards Miles cashback on every Careem ride completed in Dubai and Sharjah.',     cat:'Rides',         mech:'Cashback',  tiers:['Blue','Silver'],   region:['Dubai','Sharjah'],   status:'live',      signal:'fast',     health:74,   delta:8,   target:80, trend7:[58,60,64,67,69,72,74], cid:'EMSK_CA_EARN_MAY24', range:{kind:'range', from:'May 5', to:'Jun 15'},                  trophy:false },
+  { id:3,  code:'NO', sponsor:'Noon',            brand:'Noon',            name:'3× Miles on All Bookings',       desc:'Triple Miles accelerator on every Noon purchase for one month — all tiers, no spend minimum.',       cat:'E-commerce',    mech:'Points ×N', tiers:['All Tiers'],       region:['All UAE'],           status:'live',      signal:'losing',   health:41,   delta:-15, target:75, trend7:[68,65,60,56,52,47,41], cid:'EMSK_NO_RAM_MAY24',  range:{kind:'range-expiring', from:'May 5', to:'Jun 15', expires:'12d'}, trophy:true  },
+  { id:4,  code:'CF', sponsor:'Cult.fit',        brand:'Cult.fit',        name:'1 Month Free Cult.fit Access',   desc:'Complimentary 30-day Cult.fit pass for Gold-tier members redeemable at any Dubai studio.',           cat:'Lifestyle',     mech:'Voucher',   tiers:['Gold'],            region:['Dubai'],             status:'live',      signal:'elite',    health:81,   delta:5,   target:85, trend7:[72,74,75,77,78,80,81], cid:'EMSK_CF_FIT_MAY24',  range:{kind:'range', from:'May 10', to:'Jul 31'},                 trophy:false },
+  { id:5,  code:'BM', sponsor:'BookMyShow',      brand:'BookMyShow',      name:'Buy 2 Tickets Get 1 Free',       desc:'Buy two cinema tickets and get a third free across BookMyShow venues in Dubai and Abu Dhabi.',      cat:'Entertainment', mech:'BOGO',      tiers:['Silver','Gold'],   region:['Dubai','Abu Dhabi'], status:'live',      signal:'expiring', health:89,   delta:9,   target:90, trend7:[78,80,82,84,85,87,89], cid:'EMSK_BM_EXP_MAY24',  range:{kind:'expiring', label:'4 days left'},                     trophy:false },
+  { id:6,  code:'EM', sponsor:'Emirates',        brand:'Emirates',        name:'Complimentary Business Upgrade', desc:'Platinum members receive a complimentary one-time Business cabin upgrade on any DXB–AUH segment.',   cat:'Travel',        mech:'BOGO',      tiers:['Platinum'],        region:['DXB','AUH'],         status:'live',      signal:null,       health:63,   delta:6,   target:70, trend7:[55,58,60,59,61,62,63], cid:'EMSK_EM_BIZ_APR24',  range:{kind:'range', from:'Apr 1', to:'Jun 30'},                  trophy:false },
+
+  /* ── Scheduled ── */
+  { id:7,  code:'CH', sponsor:'Chalhoub',        brand:'Chalhoub',        name:'20% Off Luxury Collections',     desc:'Twenty percent off curated luxury collections at Chalhoub partner boutiques in Dubai.',              cat:'Luxury',        mech:'Flat Off',  tiers:['Gold','Plat'],     region:['Dubai'],             status:'scheduled', signal:null,       health:null, delta:0,   target:0,  trend7:[],                     cid:'EMSK_CH_LUX_JUN24',  range:{kind:'starts', label:'Starts Jun 1'},                      trophy:false },
+
+  /* ── In Review ── */
+  { id:8,  code:'TH', sponsor:'Talabat',         brand:'Talabat',         name:'AED 25 Off Weekend Orders',      desc:'AED 25 off Talabat weekend orders above AED 100 for Silver and Gold members across the UAE.',        cat:'Food',          mech:'Flat Off',  tiers:['Silver','Gold'],   region:['All UAE'],           status:'review',    signal:null,       health:null, delta:0,   target:0,  trend7:[],                     cid:'EMSK_TH_FLAT_JUL24', range:{kind:'starts', label:'Starts Jul 5'},                      trophy:false },
+
+  /* ── Drafts ── */
+  { id:9,  code:'AS', sponsor:'Almosafer',       brand:'Almosafer',       name:'Family Holiday Bonus',           desc:'Bonus Miles on family holiday bookings to GCC destinations — currently being scoped with partner.',  cat:'Travel',        mech:'Points ×N', tiers:['All Tiers'],       region:['All UAE'],           status:'draft',     signal:null,       health:null, delta:0,   target:0,  trend7:[],                     cid:'DRAFT_AS_FAM',       range:{kind:'draft', label:'Draft'},                              trophy:false },
+  { id:10, code:'CR', sponsor:'Carrefour',       brand:'Carrefour',       name:'Grocery Cashback Boost',         desc:'Cashback boost on Carrefour grocery purchases — draft pending sponsor sign-off.',                    cat:'Retail',        mech:'Cashback',  tiers:['Blue','Silver'],   region:['All UAE'],           status:'draft',     signal:null,       health:null, delta:0,   target:0,  trend7:[],                     cid:'DRAFT_CR_GROC',      range:{kind:'draft', label:'Draft'},                              trophy:false },
+
+  /* ── Expired / Ended ── */
+  { id:11, code:'NO', sponsor:'Noon',            brand:'Noon',            name:'Eid Exclusive Gift Voucher',     desc:'Eid-window gift voucher unlocked after qualifying spend at Noon — single-use, all tiers.',           cat:'E-commerce',    mech:'Voucher',   tiers:['All Tiers'],       region:['All UAE'],           status:'ended',   signal:null,       health:null, delta:0,   target:0,  trend7:[],                     cid:'EMSK_NO_EID_APR24',  range:{kind:'ended', label:'Ended Apr 25'},                       trophy:false },
+  { id:12, code:'JS', sponsor:'Jumeirah',        brand:'Jumeirah',        name:'Spring Spa Retreat',             desc:'Discounted Jumeirah spa retreat package — campaign window closed.',                                  cat:'Hotels',        mech:'Flat Off',  tiers:['Gold','Plat'],     region:['Dubai'],             status:'ended',   signal:null,       health:null, delta:0,   target:0,  trend7:[],                     cid:'EMSK_JS_SPA_FEB24',  range:{kind:'ended', label:'Ended Mar 31'},                       trophy:false },
+];
+
+/* Helpers — every consumer should derive counts via these, never hardcode. */
+const offersByStatus = (status) => OFFERS_DATA.filter(o => o.status === status);
+const offerById      = (id)     => OFFERS_DATA.find(o => o.id === id);
+/* Canonical loyalty-offer lifecycle: draft → review → scheduled → live → paused → ended.
+   Every count rendered anywhere should come through one of these getters. */
+const offerCounts    = {
+  get all()       { return OFFERS_DATA.length; },
+  get draft()     { return offersByStatus('draft').length; },
+  get review()    { return offersByStatus('review').length; },
+  get scheduled() { return offersByStatus('scheduled').length; },
+  get live()      { return offersByStatus('live').length; },
+  get paused()    { return offersByStatus('paused').length; },
+  get ended()     { return offersByStatus('ended').length; },
+  get active()    { return offersByStatus('live').length; }, // synonym for "live"
+};
+
+// Expose globally so the bundled JSX files can read it.
+window.OFFERS_DATA   = OFFERS_DATA;
+window.offersByStatus = offersByStatus;
+window.offerById      = offerById;
+window.offerCounts    = offerCounts;
+
 // ─── Design Tokens ─────────────────────────
 const COLORS = {
   bgBase:        '#0A0C10',
@@ -76,6 +131,10 @@ const Icon = ({ name, size = 16, stroke = 1.6, color }) => {
     Send: <><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>,
     ArrowLeft: <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
     Trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>,
+    Zap: <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>,
+    Star: <><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>,
+    ChevronLeft: <><polyline points="15 18 9 12 15 6"/></>,
+    ArrowUp: <><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -115,7 +174,7 @@ const Toggle = ({ on, onToggle, label }) =>
     {label && <span style={{fontSize:12, color:'var(--text-secondary)'}}>{label}</span>}
   </span>;
 
-// ─── Brand → logo URL map ────────────────
+// ─── Brand to logo URL map ────────────────
 const BRAND_LOGOS = {
   'Marriott Bonvoy':  'https://www.google.com/s2/favicons?sz=128&domain=marriott.com',
   'Marriott':         'https://www.google.com/s2/favicons?sz=128&domain=marriott.com',
@@ -153,110 +212,98 @@ const Logo = ({ code, brand, lg = false, sm = false, color, circle = true }) => 
 };
 
 // ─── Health score color (single source of truth) ───
+// Canonical thresholds used by HealthDonut and any inline health rendering.
 const getHealthColor = (value) => {
   if (value == null) return 'var(--text-muted)';
-  if (value >= 80) return '#2DD4A0'; // green
-  if (value >= 60) return '#F59E0B'; // amber
-  if (value >= 40) return '#F97316'; // orange
-  return '#F26B6B';                  // red
+  if (value >= 75) return '#52C08A'; // green
+  if (value >= 50) return '#E8A030'; // amber
+  return '#E05252';                  // red
 };
 
-// ─── Health Donut (half-pie) ─────────────
-const HealthDonut = ({ value, delta, size = 'md' }) => {
-  if (value == null) return <span style={{color:'var(--text-muted)', fontSize:13}}>—</span>;
-  // viewBox per spec: 0 0 120 60 arc; total height adds room for score + delta.
-  const isLg = size === 'lg';
-  const W = isLg ? 140 : 120;
-  const arcH = W / 2;
-  const totalH = arcH + 44;
-  const cx = W / 2, cy = arcH;
-  const r = (W / 2) - 14;
-  const sw = 10;
-  const circ = Math.PI * r;
-  const pct = Math.max(0, Math.min(100, value)) / 100;
-  const stroke = getHealthColor(value);
-  return (
-    <div className="health-donut">
-      <svg width={W} height={totalH} viewBox={`0 0 ${W} ${totalH}`}>
-        <path d={`M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`}
-              fill="none" stroke="#252A35" strokeWidth={sw} strokeLinecap="round"/>
-        <path d={`M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`}
-              fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round"
-              strokeDasharray={circ} strokeDashoffset={circ * (1-pct)}
-              style={{transition:'stroke-dashoffset .5s ease, stroke .3s ease'}}/>
-        <text x={cx} y={cy + 24} textAnchor="middle"
-              fontFamily="Sora, sans-serif" fontWeight="700" fontSize={26}
-              fill={stroke}>{value}</text>
-        {delta != null && delta !== 0 && (
-          <text x={cx} y={cy + 40} textAnchor="middle"
-                fontFamily="DM Sans, sans-serif" fontSize={11} fontWeight="500"
-                fill={delta > 0 ? '#2DD4A0' : '#F26B6B'}>
-            {delta > 0 ? '↑' : '↓'}{Math.abs(delta)} vs yesterday
-          </text>
-        )}
-      </svg>
-    </div>
-  );
+// ─── Health Donut (half-pie or circle) ─────────────
+// ─── HealthDonut ─────────────────────────
+// THE canonical health gauge used across every screen. Three sizes:
+//   sm = 40px   (table rows, segment/rule tiles)
+//   md = 60px   (offer cards — the look on the dashboard, unchanged)
+//   lg = 80px   (drawer / detail panels)
+// Renders a closed ring with a 1-color track + value-color arc and a
+// centered Sora numeric. Colors come from getHealthColor (75/50 splits).
+// Optional `delta` renders a tiny arrow + number below the donut.
+const HEALTH_DIMS = {
+  sm: { D: 40, R: 15, SW: 4, fz: 14 },
+  md: { D: 60, R: 24, SW: 6, fz: 20 },
+  lg: { D: 80, R: 32, SW: 8, fz: 26 },
 };
+const HealthDonut = ({ score, value, delta = null, size = 'md' }) => {
+  // accept `score` (new canonical) and `value` (back-compat alias)
+  const v = score != null ? score : value;
+  if (v == null) return <span style={{color:'var(--text-muted)', fontSize:13}}>—</span>;
+  // map legacy size names
+  const sKey = size === 'circle' ? 'md' : (HEALTH_DIMS[size] ? size : 'md');
+  const { D, R, SW, fz } = HEALTH_DIMS[sKey];
+  const stroke = getHealthColor(v);
+  const circ = 2 * Math.PI * R;
+  const pct = Math.max(0, Math.min(100, v)) / 100;
 
-// ─── Health Number (colored value + delta only — for compact table rows) ───
-const HealthNumber = ({ value, delta }) => {
-  if (value == null) return <span style={{color:'var(--text-muted)', fontSize:13}}>—</span>;
-  const color = getHealthColor(value);
-  return (
-    <span style={{display:'inline-flex', flexDirection:'column', alignItems:'flex-end', gap:2, lineHeight:1}}>
-      <span style={{fontFamily:'Sora, sans-serif', fontWeight:700, fontSize:18, color}}>{value}</span>
-      {delta != null && delta !== 0 && (
-        <span style={{fontSize:10, color: delta > 0 ? '#2DD4A0' : '#F26B6B', fontWeight:500}}>
-          {delta > 0 ? '↑' : '↓'}{Math.abs(delta)}
-        </span>
-      )}
+  // In table rows (sm) the delta sits to the RIGHT of the donut, vertically centred.
+  // In card / detail sizes (md / lg) the delta stays BELOW the donut.
+  const isInline = sKey === 'sm';
+  const deltaText = (delta != null && delta !== 0) ? (
+    <span style={{display:'inline-flex', alignItems:'center', gap:2,
+                  font:'500 11px/1 Manrope, sans-serif',
+                  fontVariantNumeric:'tabular-nums',
+                  color: delta > 0 ? '#52C08A' : '#E05252'}}>
+      {delta > 0 ? '↑' : '↓'} {Math.abs(delta)}
     </span>
-  );
-};
+  ) : null;
 
-// Back-compat: <HealthScore/> now renders the half pie at md.
-const HealthScore = ({ value, delta, size }) => <HealthDonut value={value} delta={delta} size={size || 'md'}/>;
-
-// ─── MiniHealth ──────────────────────────
-// Compact half-pie + score + delta. Sized for table-row cells
-// (80×40 arc). Use when the full HealthDonut is too tall.
-const MiniHealth = ({ value, delta }) => {
-  if (value == null) return <span style={{color:'var(--text-muted)', fontSize:12}}>—</span>;
-  const hc = getHealthColor(value);
-  const r = 30, sw = 7;
-  const circ = Math.PI * r;
-  const pct = Math.max(0, Math.min(100, value)) / 100;
-  return (
-    <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:2}}>
-      <svg width="80" height="40" viewBox="0 0 80 40" style={{overflow:'visible', display:'block'}}>
-        <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke="#252A35" strokeWidth={sw} strokeLinecap="round"/>
-        <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke={hc} strokeWidth={sw} strokeLinecap="round"
-              strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
-              style={{transition:'stroke-dashoffset .5s ease'}}/>
+  const donut = (
+    <div style={{position:'relative', width:D, height:D, flexShrink:0}}>
+      <svg width={D} height={D} viewBox={`0 0 ${D} ${D}`} style={{transform:'rotate(-90deg)'}}>
+        <circle cx={D/2} cy={D/2} r={R} fill="none" stroke="#1a1d24" strokeWidth={SW}/>
+        <circle cx={D/2} cy={D/2} r={R} fill="none" stroke={stroke} strokeWidth={SW}
+                strokeLinecap="round"
+                strokeDasharray={circ}
+                strokeDashoffset={circ * (1 - pct)}
+                style={{transition:'stroke-dashoffset .6s cubic-bezier(0,0,0.2,1), stroke .3s ease'}}/>
       </svg>
-      <span style={{fontFamily:'Sora, sans-serif', fontWeight:700, fontSize:16, color:hc, lineHeight:1}}>{value}</span>
-      {delta != null && delta !== 0 && (
-        <span style={{fontSize:11, fontWeight:500, color: delta > 0 ? '#2DD4A0' : '#F26B6B', lineHeight:1}}>
-          {delta > 0 ? '↑' : '↓'}{Math.abs(delta)}
-        </span>
-      )}
+      <div style={{position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center',
+                   fontFamily:'Sora, sans-serif', fontWeight:700, fontSize:fz, color:stroke, lineHeight:1,
+                   fontVariantNumeric:'tabular-nums'}}>
+        {v}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{display:'flex',
+                 flexDirection: isInline ? 'row' : 'column',
+                 alignItems:'center', gap: isInline ? 10 : 6}}>
+      {donut}
+      {deltaText}
     </div>
   );
 };
+
+// Back-compat aliases — all now thin wrappers around HealthDonut so the
+// dashboard donut is the single source of truth visually.
+const HealthScore  = ({ value, score, delta, size }) => <HealthDonut score={score ?? value} delta={delta} size={size || 'md'}/>;
+const HealthNumber = ({ value, score, delta })       => <HealthDonut score={score ?? value} delta={delta} size="sm"/>;
+const MiniHealth   = ({ value, score, delta })       => <HealthDonut score={score ?? value} delta={delta} size="sm"/>;
 
 // ─── Behavioral Signal Badge ────────────
 const SignalBadge = ({ signal }) => {
   if (!signal) return <span style={{color:'var(--text-muted)', fontSize:12}}>—</span>;
   const map = {
-    trending:    { kind: 'amber',  glyph: '🔥', label: 'Trending' },
-    fast:        { kind: 'blue',   glyph: '⚡', label: 'Fast Growing' },
-    losing:      { kind: 'red',    glyph: '↘',  label: 'Losing Momentum' },
-    elite:       { kind: 'gold',   glyph: '★',  label: 'Elite Favorite' },
-    expiring:    { kind: 'orange', glyph: '⏳', label: 'Expiring Soon' },
+    trending:    { kind: 'amber',  icon: 'TrendingUp',   label: 'Trending' },
+    fast:        { kind: 'blue',   icon: 'Zap',          label: 'Fast Growing' },
+    losing:      { kind: 'red',    icon: 'TrendingDown', label: 'Losing Momentum' },
+    elite:       { kind: 'gold',   icon: 'Star',         label: 'Elite Favorite' },
+    expiring:    { kind: 'orange', icon: 'Clock',        label: 'Expiring Soon' },
   };
   const s = map[signal];
-  return <Pill kind={s.kind}><span style={{fontSize:11}}>{s.glyph}</span>{s.label}</Pill>;
+  if (!s) return <span style={{color:'var(--text-muted)', fontSize:12}}>—</span>;
+  return <Pill kind={s.kind}><Icon name={s.icon} size={11}/>{s.label}</Pill>;
 };
 
 // ─── Status with dot ────────────────────
@@ -276,8 +323,8 @@ function useToast() { return React.useContext(ToastContext); }
 
 // ─── TableRowActions ────────────────────
 // Wraps a row's quick-action icons. Hover behavior comes from
-// .tbl-row:hover .row-actions in gravty.css (opacity 0→1,
-// visibility hidden→visible, no transition). The actions sit in
+// .tbl-row:hover .row-actions in gravty.css (opacity 0to1,
+// visibility hiddentovisible, no transition). The actions sit in
 // the grid cell with margin-left:auto so they hug the right edge
 // without breaking the grid layout that each table relies on.
 // Declared as `function` (hoisted, attached to window) to match
@@ -329,15 +376,15 @@ function TablePagination({ total, noun = 'items', pageSize = 25, currentPage = 1
         <span>Showing {start}–{end} of {total} {noun}</span>
       </div>
       <div className="row gap-6">
-        <span style={{cursor: currentPage === 1 ? 'default' : 'pointer', opacity: currentPage === 1 ? 0.4 : 1}}
-              onClick={() => go(currentPage - 1)}>‹ Prev</span>
+        <span style={{display:'inline-flex', alignItems:'center', gap:4, cursor: currentPage === 1 ? 'default' : 'pointer', opacity: currentPage === 1 ? 0.4 : 1}}
+              onClick={() => go(currentPage - 1)}><Icon name="ChevronLeft" size={14}/>Prev</span>
         {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
           p === currentPage
             ? <Pill key={p} kind="solid-gold">{p}</Pill>
             : <span key={p} style={{padding:'4px 10px', cursor:'pointer'}} onClick={() => go(p)}>{p}</span>
         ))}
-        <span style={{cursor: currentPage === totalPages ? 'default' : 'pointer', opacity: currentPage === totalPages ? 0.4 : 1}}
-              onClick={() => go(currentPage + 1)}>Next ›</span>
+        <span style={{display:'inline-flex', alignItems:'center', gap:4, cursor: currentPage === totalPages ? 'default' : 'pointer', opacity: currentPage === totalPages ? 0.4 : 1}}
+              onClick={() => go(currentPage + 1)}>Next<Icon name="ChevronRight" size={14}/></span>
       </div>
     </div>
   );
@@ -347,59 +394,90 @@ function TablePagination({ total, noun = 'items', pageSize = 25, currentPage = 1
 // Shared offer-summary card. `c` is the offer record (brand, code,
 // name, mech, tiers, region, health, delta, sig, pct, q, cat).
 // Layout: header row (logo + brand/cat on left; signal badge +
-// hover-only Edit/More icons on right) → title → pills → region →
-// centered health donut with breathing room → redemption bar.
+// hover-only Edit/More icons on right) to title to pills to region to
+// centered health donut with breathing room to redemption bar.
 // Hover reveals quick-action icons (no transition, instant).
 function OfferCard({ c, onClick }) {
-  const [hovered, setHovered] = useState(false);
+  const firstRegion = (c.region || '').split(' · ')[0];
+  const scoreColor = getHealthColor(c.health);
+  const logoSrc = BRAND_LOGOS[c.brand];
+  const tags = [c.mech, c.tiers].filter(Boolean);
+
+  const stop = (e) => { e.stopPropagation(); };
+  const onKebab = (e) => {
+    stop(e);
+    if (window.__toast) window.__toast('Coming in the next release.');
+  };
+
   return (
-    <div className="card hoverable" onClick={onClick}
-         onMouseEnter={() => setHovered(true)}
-         onMouseLeave={() => setHovered(false)}
-         style={{display:'flex', flexDirection:'column', gap:10, padding:16}}>
+    <div className="offer-card-ref hoverable" onClick={onClick}
+         style={{display:'flex', flexDirection:'row', alignItems:'flex-start', gap:16, position:'relative'}}>
 
-      {/* HEADER — logo+brand/cat (left)  |  signal + quick actions (right) */}
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8}}>
-        <div style={{display:'flex', gap:10, alignItems:'center', minWidth:0}}>
-          <Logo code={c.code} brand={c.brand}/>
-          <div style={{minWidth:0}}>
-            <div style={{fontWeight:500, fontSize:13}}>{c.brand}</div>
-            <div className="mute" style={{fontSize:11}}>{c.cat}</div>
+      {/* LEFT — 56×56 logo */}
+      <div style={{
+        width:56, height:56, borderRadius:10, flexShrink:0,
+        background:'var(--bg-overlay)', border:'1px solid var(--border-default)',
+        overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center'}}>
+        {logoSrc
+          ? <img src={logoSrc} alt={c.brand} style={{width:'100%', height:'100%', objectFit:'cover'}}/>
+          : <span style={{font:'600 14px/1 Inter, sans-serif', color:'var(--text-primary)'}}>{c.code}</span>}
+      </div>
+
+      {/* CENTER — text stack */}
+      <div style={{flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:8, paddingRight:88}}>
+        {/* brand + status dot */}
+        <div style={{display:'flex', alignItems:'center', gap:8, minWidth:0}}>
+          <span style={{font:'400 13px/1 Inter, sans-serif', color:'var(--text-muted)',
+                        whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
+            {c.brand}
+          </span>
+          <span style={{width:7, height:7, borderRadius:'50%', background:'#59d499', flexShrink:0}}/>
+        </div>
+
+        {/* title 16px bold */}
+        <div style={{font:'600 16px/1.3 Inter, sans-serif', color:'var(--text-primary)',
+                     display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden'}}>
+          {c.name}
+        </div>
+
+        {/* tag pills */}
+        {tags.length > 0 && (
+          <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
+            {tags.map((t, i) => (
+              <span key={i} style={{
+                font:'500 11px/1 Inter, sans-serif', color:'var(--text-muted)',
+                padding:'5px 10px', border:'1px solid #242728', borderRadius:12,
+                whiteSpace:'nowrap'}}>{t}</span>
+            ))}
           </div>
-        </div>
-        <div style={{display:'flex', alignItems:'center', gap:6, flexShrink:0}}>
-          <SignalBadge signal={c.sig}/>
-          <div style={{opacity: hovered ? 1 : 0, display:'flex', gap:4}}>
-            <button className="btn icon-only sm ghost" onClick={(e)=>e.stopPropagation()} title="Edit"><Icon name="Edit" size={13}/></button>
-            <button className="btn icon-only sm ghost" onClick={(e)=>e.stopPropagation()} title="More"><Icon name="MoreHorizontal" size={13}/></button>
+        )}
+
+        {/* location */}
+        {firstRegion && (
+          <div style={{font:'400 12px/1.2 Inter, sans-serif', color:'var(--text-muted)', marginTop:'auto'}}>
+            {c.region}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* BODY — title */}
-      <div className="sora" style={{fontSize:16, fontWeight:600, lineHeight:1.3}}>{c.name}</div>
-
-      {/* BODY — mechanic + tier pills */}
-      <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
-        <Pill kind="solid-dark">{c.mech}</Pill>
-        <Pill>{c.tiers}</Pill>
-      </div>
-
-      {/* BODY — region */}
-      <div className="mute" style={{fontSize:13}}>{c.region}</div>
-
-      {/* FOOTER — centered health donut with breathing room */}
-      <div style={{display:'flex', justifyContent:'center', padding:'16px 0'}}>
-        <HealthDonut value={c.health} delta={c.delta} size="md"/>
-      </div>
-
-      {/* FOOTER — redemption bar (full width) */}
-      <div>
-        <div className="progress" style={{marginBottom:5}}><div style={{width:c.pct+'%'}}/></div>
-        <div style={{display:'flex', justifyContent:'space-between', fontSize:11}}>
-          <span style={{color:'var(--text-primary)', fontWeight:500}}>{c.pct}%</span>
-          <span className="mute mono">{c.q}</span>
-        </div>
+      {/* RIGHT — kebab + donut + delta, absolutely positioned */}
+      <button type="button" onClick={onKebab}
+              style={{position:'absolute', top:12, right:12,
+                      background:'transparent', border:0, padding:4, cursor:'pointer',
+                      color:'var(--text-muted)', display:'inline-flex', borderRadius:4}}
+              aria-label="More options">
+        <Icon name="MoreHorizontal" size={16}/>
+      </button>
+      <div style={{position:'absolute', top:40, right:16,
+                   display:'flex', flexDirection:'column', alignItems:'center', gap:6}}>
+        <HealthDonut score={c.health} size="md"/>
+        {c.delta != null && c.delta !== 0 && (
+          <span style={{display:'inline-flex', alignItems:'center', gap:3,
+                        font:'500 11px/1 Inter, sans-serif', color:scoreColor}}>
+            <Icon name={c.delta > 0 ? 'ArrowUp' : 'ArrowDown'} size={10}/>
+            {Math.abs(c.delta)} vs yesterday
+          </span>
+        )}
       </div>
     </div>
   );
@@ -516,13 +594,28 @@ function OfferChipRow({ offers, more = 0, onClick }) {
 //   <InsightCard tone="red" icon={<Icon name="TrendingDown"/>}
 //                headline="…" body="…" ctaLabel="View"
 //                onClick={…}/>
-function InsightCard({ tone = 'blue', icon, headline, body, ctaLabel, onClick }) {
+function InsightCard({ tone = 'blue', icon, headline, body, ctaLabel, onClick, watermark, dot }) {
   return (
-    <div className={"insight-card " + tone + " hoverable"} onClick={onClick}>
-      <div className="ic-icon">{icon}</div>
-      <h4>{headline}</h4>
-      <p>{body}</p>
-      <div className="ic-cta row gap-4">{ctaLabel} <Icon name="ArrowRight" size={12}/></div>
+    <div className={"insight-card " + tone + " hoverable"} onClick={onClick} style={{position:'relative', overflow:'hidden'}}>
+      {watermark && (
+        <span aria-hidden="true" style={{
+          position:'absolute', right:-8, bottom:-20,
+          fontFamily:"'Inter', sans-serif", fontWeight:800, fontSize:96,
+          color:'var(--accent-red)', opacity:0.10, letterSpacing:'-0.04em',
+          lineHeight:0.85, pointerEvents:'none', userSelect:'none', zIndex:0,
+          fontVariantNumeric:'tabular-nums'
+        }}>{watermark}</span>
+      )}
+      {dot && (
+        <span aria-hidden="true" style={{
+          position:'absolute', top:14, right:14, width:6, height:6, borderRadius:'50%',
+          background: dot, zIndex:2
+        }}/>
+      )}
+      <div className="ic-icon" style={{position:'relative', zIndex:1}}>{icon}</div>
+      <h4 style={{position:'relative', zIndex:1}}>{headline}</h4>
+      <p style={{position:'relative', zIndex:1}}>{body}</p>
+      <div className="ic-cta row gap-4" style={{position:'relative', zIndex:1}}>{ctaLabel} <Icon name="ArrowRight" size={12}/></div>
     </div>
   );
 }
@@ -530,13 +623,16 @@ function InsightCard({ tone = 'blue', icon, headline, body, ctaLabel, onClick })
 // ─── MetricTile ──────────────────────────
 // KPI tile with label / value / change indicator. `changeKind` drives
 // the existing `.mc.up | .down | .flat | .warn` CSS variant.
-//   <MetricTile label="Active Members" value="1.24M" change="▲ 3.1%" changeKind="up"/>
+//   <MetricTile label="Active Members" value="1.24M" change="^ 3.1%" changeKind="up"/>
 //   <MetricTile … onClick={…}/>  // tile gets `.clickable` class
-function MetricTile({ label, value, unit, change, changeKind = 'flat', onClick }) {
+function MetricTile({ label, value, unit, change, changeKind = 'flat', onClick, bordered = false, sparkline }) {
   return (
-    <div className={"metric-tile" + (onClick ? ' clickable' : '')} onClick={onClick}>
+    <div className={"metric-tile" + (bordered ? ' bordered' : ' chrome-free') + (onClick ? ' clickable' : '')} onClick={onClick}>
       <div className="ml">{label}</div>
-      <div className="mv">{value}{unit && <span className="unit"> {unit}</span>}</div>
+      <div className="row gap-12" style={{alignItems:'baseline', justifyContent:'space-between'}}>
+        <div className="mv">{value}{unit && <span className="unit"> {unit}</span>}</div>
+        {sparkline}
+      </div>
       <div className={"mc " + changeKind}>{change}</div>
     </div>
   );
@@ -601,27 +697,46 @@ function PathCard({ highlighted, title, subtitle, ctaLabel, onCTA, art }) {
 // muted. `onSelect(template)` fires when the CTA is clicked.
 function TemplateCard({ template, onSelect }) {
   const t = template;
+  const [saved, setSaved] = useState(false);
   return (
-    <div className="card hoverable" style={{position:'relative', display:'flex', flexDirection:'column', gap:10}}>
-      {t.rec && (
-        <div style={{position:'absolute', top:-9, right:14, background:'var(--accent-gold)', color:'#0A0C10', fontSize:10, fontWeight:600, padding:'3px 10px', borderRadius:999, display:'flex', alignItems:'center', gap:4}}>
-          <span>✦</span> Recommended
-        </div>
+    <div className={"tpl-card" + (t.rec ? ' recommended' : '')} onClick={() => onSelect && onSelect(t)}>
+      <span className="tpl-cat">{t.cat}</span>
+
+      {t.rec ? (
+        <span className="tpl-rec-badge"><span>✦</span> Recommended</span>
+      ) : (
+        <span className="tpl-bookmark"
+              onClick={(e)=>{ e.stopPropagation(); setSaved(s=>!s); }}
+              aria-label={saved ? 'Unsave template' : 'Save template'}>
+          <Icon name="Star" size={16} color={saved ? '#E8A030' : 'currentColor'}/>
+        </span>
       )}
-      <Pill style={{alignSelf:'flex-start'}}>{t.cat}</Pill>
-      <div className="sora" style={{fontSize:16, fontWeight:600, lineHeight:1.2}}>{t.name}</div>
-      <div className="mute" style={{fontSize:13, lineHeight:1.5}}>{t.desc}</div>
-      <div className="col gap-4" style={{marginTop:6}}>
+
+      <div className="tpl-title">{t.name}</div>
+      <div className="tpl-desc">{t.desc}</div>
+
+      <div className="tpl-meta">
         {t.meta.map((m, mi) => (
-          <div key={mi} style={{fontSize:11, color:'var(--text-secondary)'}}>
-            <span style={{color: mi === 0 ? 'var(--accent-green)' : 'var(--text-muted)'}}>{mi === 0 ? '↑' : '·'}</span> {m}
+          <div key={mi} className="tpl-meta-row">
+            {mi === 0 ? (
+              <>
+                <Icon name="ArrowUp" size={12} color="#52C08A"/>
+                <span className="tpl-meta-lift">{m}</span>
+              </>
+            ) : (
+              <>
+                <Icon name={mi === 1 ? 'Tag' : 'Users'} size={11}/>
+                <span>{m}</span>
+              </>
+            )}
           </div>
         ))}
       </div>
-      <div style={{flex:1}}/>
-      <div style={{marginTop:10}}>
-        <Btn kind={t.rec ? 'primary' : ''} sm onClick={() => onSelect && onSelect(t)}>Use This Template →</Btn>
-      </div>
+
+      <button className="tpl-cta"
+              onClick={(e)=>{ e.stopPropagation(); onSelect && onSelect(t); }}>
+        Use This Template <Icon name="ArrowRight" size={12}/>
+      </button>
     </div>
   );
 }
@@ -665,7 +780,7 @@ function PageLayout({ children }) {
 }
 
 // ─── PageHeader ──────────────────────────
-// Consistent screen header: optional back link → title → subtitle on
+// Consistent screen header: optional back link to title to subtitle on
 // the left; optional action group on the right.
 //   <PageHeader title="…" subtitle="…"
 //               backLabel="Back to Offers" onBack={…}
@@ -692,7 +807,7 @@ function PageHeader({ title, subtitle, actions, backLabel, onBack }) {
             alignItems: 'center',
             gap: '6px',
           }}>
-            ← {backLabel}
+            <Icon name="ArrowLeft" size={13}/> {backLabel}
           </button>
         )}
         <h1 style={{

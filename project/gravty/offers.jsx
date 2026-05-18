@@ -11,11 +11,14 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
   const [appliedFilters, setAppliedFilters] = useState(() => {
     const f = emptyFilters();
     if (initial?.filter === 'gold') f.tier.add('Gold');
+    // Status passed in from dashboard pipeline (Draft, Review, Scheduled, Live, Ended).
+    // Pre-applies a status chip so the table is filtered on first render.
+    if (initial?.status) f.status.add(initial.status);
     return f;
   });
   const [pendingFilters, setPendingFilters] = useState(appliedFilters);
 
-  // Open panel → sync pending from applied
+  // Open panel to sync pending from applied
   useEffect(() => {
     if (filterOpen) setPendingFilters(cloneFilters(appliedFilters));
   }, [filterOpen]);
@@ -44,16 +47,16 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
   const pendingFilterCount =
     pendingFilters.sponsor.size + pendingFilters.type.size + pendingFilters.tier.size + pendingFilters.region.size + pendingFilters.status.size;
 
-  const all = [
-    { id:1, code:'MA', sponsor:'Marriott Bonvoy', cat:'Hotels',         offer:'Flat 50% Off Weekend Stays',     cid:'EMSK_MA_BOGO_MAY24',  mech:'BOGO',      tiers:['Gold','Plat'],   region:['Dubai','Abu Dhabi'],            range:'May 1 → Jun 30',          sig:'trending', kind:'live',     health:87, delta:12, trophy:false },
-    { id:2, code:'CA', sponsor:'Careem',          cat:'Rides',          offer:'10% Cashback on Every Ride',      cid:'EMSK_CA_EARN_MAY24',  mech:'Cashback',  tiers:['Blue','Silver'], region:['Dubai','Sharjah'],              range:'May 5 → Jun 15',          sig:'fast',     kind:'live',     health:74, delta:8,  trophy:false },
-    { id:3, code:'NO', sponsor:'Noon',            cat:'E-commerce',     offer:'3× Miles on All Bookings',        cid:'EMSK_NO_RAM_MAY24',   mech:'Points ×N', tiers:['All Tiers'],     region:['All UAE'],                      range:'May 5 → Jun 15 · 12d',    sig:'losing',   kind:'live',     health:41, delta:-15,trophy:true  },
-    { id:4, code:'CF', sponsor:'Cult.fit',        cat:'Lifestyle',      offer:'1 Month Free Cult.fit Access',    cid:'EMSK_CF_FIT_MAY24',   mech:'Voucher',   tiers:['Gold'],          region:['Dubai'],                        range:'May 10 → Jul 31',         sig:'elite',    kind:'live',     health:81, delta:5,  trophy:false },
-    { id:5, code:'BM', sponsor:'BookMyShow',      cat:'Entertainment',  offer:'Buy 2 Tickets Get 1 Free',        cid:'EMSK_BM_EXP_MAY24',   mech:'BOGO',      tiers:['Silver','Gold'], region:['Dubai','Abu Dhabi'],            range:'⏳ 4 days left',           sig:'expiring', kind:'live',     health:89, delta:0,  trophy:false },
-    { id:6, code:'EM', sponsor:'Emirates',        cat:'Travel',         offer:'Complimentary Business Upgrade',  cid:'EMSK_EM_BIZ_APR24',   mech:'BOGO',      tiers:['Platinum'],      region:['DXB','AUH'],                    range:'Apr 1 → Jun 30',          sig:null,       kind:'live',     health:63, delta:0,  trophy:false },
-    { id:7, code:'CH', sponsor:'Chalhoub',        cat:'Luxury',         offer:'20% Off Luxury Collections',      cid:'EMSK_CH_LUX_JUN24',   mech:'Flat Off',  tiers:['Gold','Plat'],   region:['Dubai'],                        range:'Starts Jun 1',            sig:null,       kind:'scheduled',health:null,delta:0, trophy:false },
-    { id:8, code:'NO', sponsor:'Noon',            cat:'E-commerce',     offer:'Eid Exclusive Gift Voucher',      cid:'EMSK_NO_EID_APR24',   mech:'Voucher',   tiers:['All Tiers'],     region:['All UAE'],                      range:'Ended Apr 25',            sig:null,       kind:'ended',    health:null,delta:0, trophy:false },
-  ];
+  // Single source of truth — derive from OFFERS_DATA. Map to the row shape this
+  // screen expects: `offer` for the name and `kind` for status.
+  const all = OFFERS_DATA.map(o => ({
+    id: o.id, code: o.code, sponsor: o.sponsor, cat: o.cat,
+    offer: o.name, cid: o.cid, mech: o.mech,
+    tiers: o.tiers, region: o.region,
+    range: o.range, sig: o.signal,
+    kind: o.status,
+    health: o.health, delta: o.delta, trophy: o.trophy,
+  }));
 
   // Apply tabs + applied filters to compute visible rows
   const applyAll = (filters) => {
@@ -66,7 +69,7 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
     if (filters.type.size)    rows = rows.filter(r => filters.type.has(r.mech));
     if (filters.tier.size)    rows = rows.filter(r => r.tiers.some(t => filters.tier.has(t === 'Plat' ? 'Platinum' : t)));
     if (filters.region.size)  rows = rows.filter(r => r.region.some(g => filters.region.has(g)));
-    if (filters.status.size)  rows = rows.filter(r => filters.status.has({live:'Live',scheduled:'Scheduled',ended:'Ended',paused:'Paused'}[r.kind]));
+    if (filters.status.size)  rows = rows.filter(r => filters.status.has({draft:'Draft',review:'Review',scheduled:'Scheduled',live:'Live',paused:'Paused',ended:'Ended'}[r.kind]));
     return rows;
   };
 
@@ -81,11 +84,12 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
 
   const tierColor = (t) => ({Gold:'gold', Plat:'plat', Platinum:'plat', Silver:'solid-dark', Blue:'blue', 'All UAE':'solid-dark'}[t] || 'solid-dark');
   const statusInfo = (k) => ({
-    live:        { label:'Live' },
-    scheduled:   { label:'Scheduled' },
-    ended:       { label:'Ended' },
-    paused:      { label:'Paused' },
-    'in-review': { label:'In Review' },
+    draft:     { label:'Draft' },
+    review:    { label:'Review' },
+    scheduled: { label:'Scheduled' },
+    live:      { label:'Live' },
+    paused:    { label:'Paused' },
+    ended:     { label:'Ended' },
   }[k] || { label:'—' });
   const stateActions = (kind) => {
     if (kind === 'live')      return [{i:'Edit',ic:'Edit'},{i:'Pause',ic:'Pause'},{i:'More',ic:'MoreHorizontal'}];
@@ -94,48 +98,85 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
     return [{i:'Edit',ic:'Edit'},{i:'More',ic:'MoreHorizontal'}];
   };
 
-  // Sticky offsets — app bar is 84px (shell padding-top). Page header ≈76, tab row ≈40.
+  // Sticky offsets — app bar is 84px (shell padding-top). Page header ≈76, tab row ≈40, filter chips row ≈48 when shown.
   const STICKY_TOP = 84;
   const HEADER_H = 76;
   const TABS_H = 40;
+  const CHIPS_H = activeFilterCount > 0 ? 48 : 0;
+
+  // Solid fill that exactly matches the page background — used by every
+  // sticky band on this screen so table rows scrolling underneath are fully
+  // occluded. Spec: #07080a.
+  const STICKY_BG = '#07080a';
 
   return (
     <PageLayout>
-      {/* Sticky page header */}
-      <div style={{position:'sticky', top:STICKY_TOP, zIndex:50, background:'var(--bg-base)', marginLeft:-40, marginRight:-40, paddingLeft:40, paddingRight:40, paddingTop:8}}>
-        <PageHeader
-          title="Offers"
-          subtitle="34 offers active · 3 expiring this week · 2 drafts incomplete"
-          actions={
-            <>
-              <div className="row gap-4" style={{padding:'3px',background:'var(--bg-elevated)',borderRadius:8,border:'1px solid var(--border-default)'}}>
-                <button className={"btn sm ghost"} style={{background:view==='table'?'var(--accent-gold)':'transparent',color:view==='table'?'#0A0C10':'var(--text-secondary)'}} onClick={()=>setView('table')}><Icon name="Table" size={13}/> Table</button>
-                <button className={"btn sm ghost"} style={{background:view==='map'?'var(--accent-gold)':'transparent',color:view==='map'?'#0A0C10':'var(--text-secondary)'}} onClick={()=>setView('map')}><Icon name="Map" size={13}/> Map</button>
-              </div>
-              <button className="filter-icon-btn" onClick={()=>setFilterOpen(true)} title="Filter">
-                <Icon name="Filter" size={16}/>
-                {activeFilterCount > 0 && <span className="count-badge">{activeFilterCount}</span>}
-              </button>
-              <Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>} onClick={()=>goTo('templates')}>Create Offer</Btn>
-            </>
-          }
-        />
+      {/* Sticky header — wraps title row and tabs row in a single solid band so table rows can't bleed through.
+          Negative marginTop + matching paddingTop cancels PageLayout's 32px top padding so the band sits flush against the topbar. */}
+      <div style={{position:'sticky', top:STICKY_TOP, zIndex:20, backgroundColor:STICKY_BG, marginLeft:-40, marginRight:-40, marginTop:-32, paddingLeft:40, paddingRight:40, paddingTop:32}}>
+        <div style={{backgroundColor:STICKY_BG}}>
+          <PageHeader
+            title="Offers"
+            subtitle={`${offerCounts.active} ${offerCounts.active === 1 ? 'offer' : 'offers'} active · ${all.filter(r => r.sig === 'expiring').length} expiring this week · ${offerCounts.draft} ${offerCounts.draft === 1 ? 'draft' : 'drafts'} incomplete`}
+            actions={
+              <>
+                <div className="row gap-4" style={{padding:'3px',background:'var(--bg-elevated)',borderRadius:8,border:'1px solid var(--border-default)'}}>
+                  <button className={"btn sm ghost"} style={{background:view==='table'?'var(--accent-gold)':'transparent',color:view==='table'?'#0A0C10':'var(--text-secondary)'}} onClick={()=>setView('table')}><Icon name="Table" size={13}/> Table</button>
+                  <button className={"btn sm ghost"} style={{background:view==='map'?'var(--accent-gold)':'transparent',color:view==='map'?'#0A0C10':'var(--text-secondary)'}} onClick={()=>setView('map')}><Icon name="Map" size={13}/> Map</button>
+                </div>
+                <button className="filter-icon-btn" onClick={()=>setFilterOpen(true)} title="Filter">
+                  <Icon name="Filter" size={16}/>
+                  {activeFilterCount > 0 && <span className="count-badge">{activeFilterCount}</span>}
+                </button>
+                <Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>} onClick={()=>goTo('templates')}>Create Offer</Btn>
+              </>
+            }
+          />
+        </div>
+
+        {/* Tab row — same backgroundColor as parent, no border-bottom, so the two rows read as one seamless band */}
+        <div className="tab-bar" style={{backgroundColor:STICKY_BG, borderBottom:'none', backdropFilter:'none', boxShadow:'none'}}>
+          {[
+            {id:'all',       label:'All Offers',  count: all.length + pendingOffers.length},
+            {id:'mine',      label:'My Offers',   count: all.filter(r=>[1,2,3].includes(r.id)).length},
+            {id:'drafts',    label:'Drafts',      count: all.filter(r => r.kind === 'draft').length},
+            {id:'scheduled', label:'Scheduled',   count: all.filter(r=>r.kind==='scheduled').length},
+            {id:'archived',  label:'Archived',    count: all.filter(r=>r.kind==='ended').length}
+          ].map(t => (
+            <div key={t.id} className={"tab " + (tab===t.id?'active':'')} onClick={()=>setTab(t.id)}>
+              {t.label} <span className="mute" style={{fontWeight:400}}>({t.count})</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Sticky tab row */}
-      <div className="tab-bar" style={{position:'sticky', top:STICKY_TOP + HEADER_H, zIndex:49, background:'var(--bg-base)', marginLeft:-40, marginRight:-40, paddingLeft:40, paddingRight:40}}>
-        {[
-          {id:'all',       label:'All Offers',  count: all.length + pendingOffers.length},
-          {id:'mine',      label:'My Offers',   count: all.filter(r=>[1,2,3].includes(r.id)).length},
-          {id:'drafts',    label:'Drafts',      count: all.filter(r => r.kind === 'draft').length},
-          {id:'scheduled', label:'Scheduled',   count: all.filter(r=>r.kind==='scheduled').length},
-          {id:'archived',  label:'Archived',    count: all.filter(r=>r.kind==='ended').length}
-        ].map(t => (
-          <div key={t.id} className={"tab " + (tab===t.id?'active':'')} onClick={()=>setTab(t.id)}>
-            {t.label} <span className="mute" style={{fontWeight:400}}>({t.count})</span>
+      {/* Active filter tags — only renders when at least one filter is applied */}
+      {activeFilterCount > 0 && (
+        <div style={{position:'sticky', top: STICKY_TOP + HEADER_H + TABS_H, zIndex:48,
+                     background: STICKY_BG, marginLeft:-40, marginRight:-40, paddingLeft:40, paddingRight:40,
+                     borderBottom: '1px solid var(--border-subtle)'}}>
+          <div style={{display:'flex', flexWrap:'wrap', alignItems:'center', gap:8, padding:'10px 0'}}>
+            {['sponsor','type','tier','region','status'].flatMap(key =>
+              [...appliedFilters[key]].map(val => (
+                <span key={`${key}:${val}`} className="filter-tag"
+                      onClick={()=>{
+                        setAppliedFilters(prev => {
+                          const next = cloneFilters(prev);
+                          next[key].delete(val);
+                          return next;
+                        });
+                      }}>
+                  {val} <Icon name="X" size={11}/>
+                </span>
+              ))
+            )}
+            <span className="filter-clear-all"
+                  onClick={()=>setAppliedFilters(emptyFilters())}>
+              Clear All
+            </span>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
       {/* Scrolling content */}
       <div style={{paddingTop:16, paddingBottom:48}}>
@@ -164,7 +205,7 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
         {view === 'table' && (rows.length > 0 ? (
           <div className="tbl" style={{width:'100%', overflow:'visible'}}>
             {/* SPONSOR 90 | OFFER 1fr (truncates) | MECHANIC 90 | TIER 110 | REGION 100 | TIMELINE 110 | SIGNAL 130 | STATUS 90 | HEALTH 120 | ACTIONS 90 */}
-            <div className="tbl-head" style={{gridTemplateColumns:'90px 1fr 90px 110px 100px 110px 130px 90px 120px 90px', columnGap:'24px', padding:'8px 24px', position:'sticky', top: STICKY_TOP + HEADER_H + TABS_H, zIndex:48}}>
+            <div className="tbl-head" style={{gridTemplateColumns:'90px 1fr 90px 110px 100px 110px 130px 90px 120px 90px', columnGap:'24px', padding:'8px 24px', position:'sticky', top: STICKY_TOP + HEADER_H + TABS_H, zIndex:10}}>
               <span>Sponsor</span>
               <span>Offer</span>
               <span>Mechanic</span>
@@ -178,17 +219,27 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
             </div>
             {rows.map(r => {
               const si = statusInfo(r.kind);
-              const tl = r.range || '';
-              const tlEl = tl.startsWith('⏳') ? <span style={{color:'var(--accent-amber)', fontSize:11}}>{tl}</span>
-                         : tl.startsWith('Starts') ? <span style={{color:'var(--accent-blue)', fontSize:11}}>{tl}</span>
-                         : tl.startsWith('Ended') ? <span style={{color:'var(--text-muted)', fontSize:11, opacity:0.6}}>{tl}</span>
-                         : tl.includes(' · ') ? (
-                             <span style={{fontSize:11}}>
-                               <span style={{color:'var(--text-secondary)'}}>{tl.split(' · ')[0]}</span>
-                               {' '}<span style={{color:'var(--accent-amber)'}}>⏳ {tl.split(' · ')[1]}</span>
+              const tl = r.range || {kind:'plain', label:''};
+              const tlEl = tl.kind === 'expiring' ? (
+                             <span style={{display:'inline-flex', alignItems:'center', gap:4, color:'var(--accent-amber)', fontSize:11}}>
+                               <Icon name="Clock" size={11}/>{tl.label}
                              </span>
                            )
-                         : <span style={{color:'var(--text-secondary)', fontSize:11}}>{tl}</span>;
+                         : tl.kind === 'starts' ? <span style={{color:'var(--accent-blue)', fontSize:11}}>{tl.label}</span>
+                         : tl.kind === 'ended'  ? <span style={{color:'var(--text-muted)', fontSize:11, opacity:0.6}}>{tl.label}</span>
+                         : tl.kind === 'range-expiring' ? (
+                             <span style={{display:'inline-flex', alignItems:'center', gap:4, fontSize:11, flexWrap:'wrap'}}>
+                               <span style={{display:'inline-flex', alignItems:'center', gap:4, color:'var(--text-secondary)'}}>{tl.from} <Icon name="ArrowRight" size={10}/> {tl.to}</span>
+                               <span style={{color:'var(--text-secondary)'}}>·</span>
+                               <span style={{display:'inline-flex', alignItems:'center', gap:3, color:'var(--accent-amber)'}}><Icon name="Clock" size={11}/>{tl.expires}</span>
+                             </span>
+                           )
+                         : tl.kind === 'range' ? (
+                             <span style={{display:'inline-flex', alignItems:'center', gap:4, color:'var(--text-secondary)', fontSize:11}}>
+                               {tl.from} <Icon name="ArrowRight" size={10}/> {tl.to}
+                             </span>
+                           )
+                         : <span style={{color:'var(--text-secondary)', fontSize:11}}>{tl.label || ''}</span>;
               const validTiers = ['Blue','Silver','Gold','Platinum','Plat'];
               const tierChips = r.tiers[0] === 'All Tiers'
                 ? [<Pill key="all" kind="solid-dark" style={{fontSize:11, padding:'2px 8px', whiteSpace:'nowrap', flexShrink:0}}>All Tiers</Pill>]
@@ -230,9 +281,9 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
                   <div style={{overflow:'visible', whiteSpace:'nowrap'}}><SignalBadge signal={r.sig}/></div>
                   {/* Status — 90px */}
                   <div style={{overflow:'hidden'}}><Status kind={r.kind} label={si.label}/></div>
-                  {/* Health — 120px, half-pie + score + delta. overflow:visible + padding-right so the donut arc and delta never clip. */}
-                  <div style={{display:'flex', justifyContent:'center', alignItems:'flex-start', overflow:'visible', paddingRight:16}}>
-                    <MiniHealth value={r.health} delta={r.delta}/>
+                  {/* Health — donut + inline delta on the right, vertically centred in the row */}
+                  <div style={{display:'flex', justifyContent:'center', alignItems:'center', overflow:'visible'}}>
+                    <HealthDonut score={r.health} delta={r.delta} size="sm"/>
                   </div>
                   {/* Actions — 90px, rightmost. Hover-only via shared TableRowActions. */}
                   <TableRowActions>
@@ -285,7 +336,7 @@ function FilterPanel({ open, onClose, pending, toggleIn, clearAll, pendingCount,
   const types     = ['BOGO','Cashback','Points ×N','Flat Off','Voucher','Cause','Referral','Flash'];
   const tiers     = ['Blue','Silver','Gold','Platinum'];
   const regions   = ['Dubai','Abu Dhabi','Sharjah','All UAE','DXB','AUH'];
-  const statuses  = ['Live','Scheduled','Draft','Paused','Ended'];
+  const statuses  = ['Draft','Review','Scheduled','Live','Paused','Ended'];
 
   return (
     <>

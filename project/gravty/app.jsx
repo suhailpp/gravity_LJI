@@ -17,7 +17,7 @@ function App() {
     { dot:'var(--accent-green)', t:'Weekend BOGO 340% above forecast',    s:'Marriott Bonvoy · Dubai · 6 hr ago',           action:'drawer' },
   ]);
 
-  // Editor → app approval bus
+  // Editor to app approval bus
   useEffect(() => {
     window.__onOfferSubmitted = (payload) => {
       const newNotif = {
@@ -31,9 +31,9 @@ function App() {
       setSubmittedOffers(arr => [{
         id: Date.now(), code: 'NW', sponsor: 'New Offer', offer: payload.title,
         cid: payload.campaignId || '', mech: 'Custom', tiers: [], region: [],
-        range: '—', sig: null, kind: 'in-review', health: null, delta: 0, trophy: false
+        range: {kind:'plain', label:'—'}, sig: null, kind: 'in-review', health: null, delta: 0, trophy: false
       }, ...arr]);
-      setToast(payload.published ? '✓ Offer published' : '✓ Offer submitted for approval');
+      setToast(payload.published ? <><Icon name="Check" size={13}/> Offer published</> : <><Icon name="Check" size={13}/> Offer submitted for approval</>);
       setTimeout(()=>setToast(null), 2700);
     };
     return () => { delete window.__onOfferSubmitted; };
@@ -84,6 +84,13 @@ function App() {
 
   return (
     <>
+      {/* Plane backdrop — dashboard only, direct child of page root */}
+      {screen === 'dashboard' && (
+        <div className="plane-bg" aria-hidden="true">
+          <img src="Sources/Plane.jpg" alt=""/>
+        </div>
+      )}
+
       {/* Dev nav bar */}
       <div className="dev-bar">
         <div className="lbl">[ Wireframe Navigator ]</div>
@@ -190,18 +197,17 @@ function App() {
 
 // ─── DRAWER CONTENT ────────────────────────
 function DrawerContent({ id, onClose }) {
-  // Default detail = Ramadan Miles Bonus (id 3)
-  const data = {
-    1: { code:'MA', sponsor:'Marriott Bonvoy', name:'Flat 50% Off Weekend Stays',     status:'live', signal:'trending', health:87, delta:12,  brand:'Marriott Bonvoy', region:'Dubai · AUH', tiers:'Gold · Plat', target:96 },
-    2: { code:'CA', sponsor:'Careem',          name:'10% Cashback on Every Ride',     status:'live', signal:'fast',     health:74, delta:8,   brand:'Careem',          region:'Dubai · Sharjah', tiers:'Blue · Silver', target:80 },
-    3: { code:'NO', sponsor:'Noon',            name:'3× Miles on All Bookings',       status:'live', signal:'losing',   health:41, delta:-15, brand:'Noon',            region:'All UAE', tiers:'All Tiers', target:75 },
-    4: { code:'CF', sponsor:'Cult.fit',        name:'1 Month Free Cult.fit Access',   status:'live', signal:'elite',    health:81, delta:5,   brand:'Cult.fit',        region:'Dubai', tiers:'Gold', target:85 },
-    5: { code:'BM', sponsor:'BookMyShow',      name:'Buy 2 Tickets Get 1 Free',       status:'live', signal:'expiring', health:89, delta:0,   brand:'BookMyShow',      region:'Dubai · AUH', tiers:'Silver · Gold', target:90 },
-    6: { code:'EM', sponsor:'Emirates',        name:'Complimentary Business Upgrade', status:'live', signal:null,       health:63, delta:0,   brand:'Emirates',        region:'DXB · AUH', tiers:'Platinum', target:70 },
-    7: { code:'CH', sponsor:'Chalhoub',        name:'20% Off Luxury Collections',     status:'scheduled', signal:null,  health:null, delta:0, brand:'Chalhoub',        region:'Dubai', tiers:'Gold · Plat', target:0  },
-    8: { code:'NO', sponsor:'Noon',            name:'Eid Exclusive Gift Voucher',     status:'ended', signal:null,      health:null, delta:0, brand:'Noon',            region:'All UAE', tiers:'All', target:0 },
+  // Default detail = Ramadan Miles Bonus (id 3) — fall through if id unknown
+  const __raw = offerById(id) || offerById(3);
+  const d = {
+    code: __raw.code, sponsor: __raw.sponsor, brand: __raw.brand,
+    name: __raw.name, desc: __raw.desc,
+    status: __raw.status,
+    signal: __raw.signal,
+    health: __raw.health, delta: __raw.delta, target: __raw.target,
+    region: Array.isArray(__raw.region) ? __raw.region.join(' · ') : __raw.region,
+    tiers:  Array.isArray(__raw.tiers)  ? __raw.tiers.join(' · ')  : __raw.tiers,
   };
-  const d = data[id] || data[3];
 
   return (
     <>
@@ -210,7 +216,12 @@ function DrawerContent({ id, onClose }) {
         <div style={{flex:1}}>
           <div style={{fontSize:11, color:'var(--text-secondary)'}}>{d.brand}</div>
           <div className="sora" style={{fontSize:16, fontWeight:600, lineHeight:1.2, marginTop:2}}>{d.name}</div>
-          <div className="row gap-6" style={{marginTop:8}}>
+          {d.desc && (
+            <div style={{fontSize:13, color:'rgba(245,240,232,0.55)', lineHeight:1.45, marginTop:6}}>
+              {d.desc}
+            </div>
+          )}
+          <div className="row gap-6" style={{marginTop:10}}>
             <Status kind={d.status} label={d.status[0].toUpperCase()+d.status.slice(1)}/>
             <SignalBadge signal={d.signal}/>
           </div>
@@ -224,7 +235,7 @@ function DrawerContent({ id, onClose }) {
             <div className="drawer-section">
               <h5>Offer Health</h5>
               <div className="row between" style={{alignItems:'center'}}>
-                <HealthDonut value={d.health} delta={d.delta} size="md"/>
+                <HealthDonut score={d.health} delta={d.delta} size="lg"/>
                 <div style={{flex:1, paddingLeft:18}}>
                   <div className="lbl-cap" style={{marginBottom:4}}>vs. target</div>
                   <div style={{fontSize:14, color:'var(--text-primary)', fontWeight:500}}>Target {d.target}</div>
@@ -320,11 +331,11 @@ function MomentumCurve({ signal }) {
 
 function ScoreBars() {
   const bars = [
-    {l:'Redemption velocity', v:0.3, k:'red',    note:'Low ↓'},
-    {l:'Audience reach',      v:0.7, k:'',       note:'Good →'},
+    {l:'Redemption velocity', v:0.3, k:'red',    note:<>Low <Icon name="ArrowDown" size={10}/></>},
+    {l:'Audience reach',      v:0.7, k:'',       note:<>Good <Icon name="ArrowRight" size={10}/></>},
     {l:'Time remaining',      v:0.55,k:'amber',  note:'Moderate'},
-    {l:'Funding confirmed',   v:1.0, k:'green',  note:'✓'},
-    {l:'Member sentiment',    v:0.4, k:'red',    note:'Low ↓'},
+    {l:'Funding confirmed',   v:1.0, k:'green',  note:<Icon name="Check" size={12}/>},
+    {l:'Member sentiment',    v:0.4, k:'red',    note:<>Low <Icon name="ArrowDown" size={10}/></>},
   ];
   return (
     <div>
@@ -441,7 +452,7 @@ function AIPanel({ onClose, query, setQuery, onCTA }) {
           <div className="col gap-4">
             {suggestions.map((s,i)=>(
               <div key={i} className="ai-suggestion" onClick={()=>setQuery(s)}>
-                <span className="arrow">→</span><span>{s}</span>
+                <span className="arrow" style={{display:'inline-flex'}}><Icon name="ArrowRight" size={12}/></span><span>{s}</span>
               </div>
             ))}
           </div>
@@ -452,7 +463,7 @@ function AIPanel({ onClose, query, setQuery, onCTA }) {
             Three offers targeting Gold tier in Dubai expired in the last 10 days with no replacement. The gap in active offers for this segment is the primary driver of the decline.
           </div>
           <Btn kind="primary" sm icon={<Icon name="Plus" size={12}/>} onClick={onCTA}>Create Re-engagement Offer</Btn>
-          <span className="btn-link" style={{fontSize:12}} onClick={()=>setQuery(null)}>← Ask something else</span>
+          <span className="btn-link" style={{display:'inline-flex', alignItems:'center', gap:4, fontSize:12}} onClick={()=>setQuery(null)}><Icon name="ArrowLeft" size={12}/> Ask something else</span>
         </div>
       )}
     </div>

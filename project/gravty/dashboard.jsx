@@ -1,197 +1,312 @@
 // ============ SCREEN 1 · DASHBOARD ============
+// Monitoring screen for Priya. Layout:
+// greeting → attention strip (4 cards) →
+// main row (Live Offers grid + Pipeline | Side panel with Program Health,
+// Redemption Trend, Top Performers, Expiring Soon) →
+// full-width Partner Activity strip.
+
 function Dashboard({ goTo, openAi, openDrawer }) {
   const [view, setView] = useState('table');
-  const [mapMode, setMapMode] = useState('segment');
 
-  const heat = {
-    Blue:     [0.8, 0.7, 0.9, 0.6, 0.8, 0.5, 0.7],
-    Silver:   [0.9, 0.8, 0.7, 0.6, 0.7, 0.9, 0.8],
-    Gold:     [0.7, 0.5, 0.6, 0.2, 0.2, 0.3, 0.6],
-    Platinum: [0.9, 0.9, 0.8, 0.7, 0.9, 0.9, 0.8],
-  };
-  const tierBase = { Blue:'74,144,217', Silver:'136,146,164', Gold:'212,168,83', Platinum:'232,237,245' };
-  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-  const camps = [
-    { id:1, code:'MA', brand:'Marriott Bonvoy', cat:'Hotels',         name:'Flat 50% Off Weekend Stays',     mech:'BOGO',        tiers:'Gold · Platinum', sig:'trending', region:'Dubai · Abu Dhabi', health:87, delta:12, pct:78, q:'3,900 / 5,000' },
-    { id:2, code:'CA', brand:'Careem',          cat:'Rides',          name:'10% Cashback on Every Ride',     mech:'Cashback',    tiers:'Blue · Silver',    sig:'fast',     region:'Dubai · Sharjah',   health:74, delta:8,  pct:52, q:'2,600 / 5,000' },
-    { id:3, code:'NO', brand:'Noon',            cat:'E-commerce',     name:'3× Miles on All Bookings',       mech:'Points ×3',   tiers:'All Tiers',        sig:'losing',   region:'All UAE',           health:41, delta:-15,pct:23, q:'1,150 / 5,000' },
-    { id:4, code:'CF', brand:'Cult.fit',        cat:'Lifestyle',      name:'1 Month Free Cult.fit Access',   mech:'Voucher',     tiers:'Gold',             sig:'elite',    region:'Dubai',             health:81, delta:5,  pct:67, q:'3,350 / 5,000' },
-    { id:5, code:'BM', brand:'BookMyShow',      cat:'Entertainment',  name:'Buy 2 Tickets Get 1 Free',       mech:'BOGO',        tiers:'Silver · Gold',    sig:'expiring', region:'Dubai · Abu Dhabi', health:89, delta:0,  pct:89, q:'8,900 / 10,000' },
-    { id:6, code:'EM', brand:'Emirates',        cat:'Travel',         name:'Complimentary Business Upgrade', mech:'BOGO',        tiers:'Platinum',         sig:null,       region:'DXB · AUH',         health:63, delta:0,  pct:34, q:'1,700 / 5,000' },
+  // Live Offers grid is derived from the canonical OFFERS_DATA (status='live').
+  // Some offer-card fields need to be in the shape OfferCard expects, so we map
+  // tiers/region arrays to display strings and re-alias `signal`→`sig`, `status`→`kind`.
+  const camps = OFFERS_DATA
+    .filter(o => o.status === 'live')
+    .map(o => ({
+      id: o.id, code: o.code, brand: o.brand, name: o.name, cat: o.cat, mech: o.mech,
+      tiers: Array.isArray(o.tiers) ? o.tiers.join(' · ') : o.tiers,
+      region: Array.isArray(o.region) ? o.region.join(' · ') : o.region,
+      sig: o.signal, health: o.health, delta: o.delta, kind: o.status, trend7: o.trend7 || [],
+    }));
+
+  // Pipeline counts — derived live from OFFERS_DATA. No hardcoded numbers.
+  // Stages match the canonical lifecycle in ui.jsx; Paused is a side-state, not a pipeline step.
+  const pipeline = [
+    { stage:'Draft',     count: offerCounts.draft,     color:'#9c9c9d' },
+    { stage:'Review',    count: offerCounts.review,    color:'#E8A030' },
+    { stage:'Scheduled', count: offerCounts.scheduled, color:'#6B9FE4' },
+    { stage:'Live',      count: offerCounts.live,      color:'#52C08A' },
+    { stage:'Ended',     count: offerCounts.ended,     color:'#6a6b6c' },
   ];
 
-  const segments = {
-    'High-Value UAE Travelers': [1,3,6],
-    'Active Lifestyle Members': [2,4,5]
-  };
+  // 7-day redemption trend (counts of redemptions / day)
+  const trend = [320, 410, 380, 520, 460, 610, 540];
+  const trendMax = Math.max(...trend);
 
-  // Edges by mode for the relationship graph
-  const edges = useMemo(() => {
-    const e = [];
-    if (mapMode === 'segment') {
-      Object.entries(segments).forEach(([seg, ids]) => {
-        for (let i=0;i<ids.length;i++) for (let j=i+1;j<ids.length;j++) e.push({a:ids[i], b:ids[j], group:seg});
-      });
-    } else if (mapMode === 'sponsor') {
-      // Connect offers sharing a sponsor (Noon appears twice in our larger set)
-      e.push({a:1, b:5, group:'Hospitality cluster'});
-      e.push({a:3, b:4, group:'Lifestyle cluster'});
-    } else { // reward
-      e.push({a:1, b:5, group:'BOGO mechanic'});
-      e.push({a:1, b:6, group:'BOGO mechanic'});
-      e.push({a:5, b:6, group:'BOGO mechanic'});
-      e.push({a:2, b:3, group:'Bonus mechanic'});
-    }
-    return e;
-  }, [mapMode]);
+  // Top 3 performers (by health)
+  const topPerformers = [...camps].sort((a,b)=>b.health-a.health).slice(0,3);
 
-  // Graph nodes shaped for RelationshipGraph component
-  const graphNodes = camps.map(c => ({
-    id: c.id, code: c.code, brand: c.brand,
-    label: c.name, signal: c.sig, health: c.health, status: 'live'
-  }));
+  // Expiring soon (mock dates)
+  const expiring = [
+    { id:5, code:'BM', brand:'BookMyShow',   name:'Buy 2 Tickets Get 1 Free',   days:2 },
+    { id:3, code:'NO', brand:'Noon',         name:'3× Miles on All Bookings',   days:5 },
+    { id:6, code:'EM', brand:'Emirates',     name:'Complimentary Upgrade',       days:7 },
+  ];
+
+  // Partner activity — logo, status, renewal date
+  const partners = [
+    { code:'MA', brand:'Marriott Bonvoy', status:'active',   renewal:'Aug 14, 2026' },
+    { code:'CA', brand:'Careem',          status:'active',   renewal:'Sep 02, 2026' },
+    { code:'NO', brand:'Noon',            status:'review',   renewal:'Jun 21, 2026' },
+    { code:'CF', brand:'Cult.fit',        status:'active',   renewal:'Nov 08, 2026' },
+    { code:'BM', brand:'BookMyShow',      status:'expiring', renewal:'Jun 02, 2026' },
+    { code:'EM', brand:'Emirates',        status:'active',   renewal:'Dec 31, 2026' },
+  ];
+  const partnerStatusColor = { active:'#59d499', review:'#ffc533', expiring:'#ff6161', paused:'#9c9c9d' };
+
+  const iconCornerStyle = { position:'absolute', top:16, right:16, opacity:0.9, zIndex:2, display:'inline-flex' };
 
   return (
     <PageLayout>
-      <div className="col gap-24">
-        <PageHeader
-          title="Good morning, Priya."
-          subtitle="Tuesday, 14 May 2024 · Emirates Skywards · UAE Region"
-          actions={<Btn kind="primary" lg icon={<Icon name="Plus" size={14}/>} onClick={()=>goTo('templates')}>Create Offer</Btn>}
-        />
-
-      {/* ZONE 1 — Intelligence strip */}
-      <div className="col gap-12">
-        <div className="lbl-cap">What needs your attention</div>
-        <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16}}>
-          <InsightCard tone="red"
-            icon={<Icon name="TrendingDown" size={14} color="var(--accent-red)"/>}
-            headline="Gold Tier Redemption Down 18%"
-            body="3 offers expiring this week may be contributing."
-            ctaLabel="View Offers"
-            onClick={()=>goTo('offers', {filter:'gold'})}/>
-          <InsightCard tone="green"
-            icon={<Icon name="TrendingUp" size={14} color="var(--accent-green)"/>}
-            headline="Weekend BOGO — 340% Above Forecast"
-            body="Dubai · Marriott Bonvoy · Consider extending the offer window."
-            ctaLabel="Review Offer"
-            onClick={()=>openDrawer(1)}/>
-          <InsightCard tone="amber"
-            icon={<Icon name="FileEdit" size={14} color="var(--accent-amber)"/>}
-            headline="Draft Stalled — Ramadan Miles Bonus"
-            body="Last edited 6 days ago · Eligibility rules incomplete."
-            ctaLabel="Resume Draft"
-            onClick={()=>goTo('offers', {tab:'drafts'})}/>
-          <InsightCard tone="blue"
-            icon={<Icon name="DollarSign" size={14} color="var(--accent-blue)"/>}
-            headline="Reward Liability Up 12% This Month"
-            body="Platinum upgrades driving spike · Finance team flagged for review."
-            ctaLabel="View Report"
-            onClick={()=>window.__toast && window.__toast('Coming in the next release.')}/>
-        </div>
-      </div>
-
-      {/* ZONE 2 — Program health */}
-      <div style={{display:'grid', gridTemplateColumns:'1.5fr 1fr', gap:24}}>
-        {/* Metric tiles */}
-        <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12}}>
-          {[
-            { l:'Active Members (30d)',  v:'1.24M',  mc:'▲ 3.1%', mck:'up' },
-            { l:'Offers Live',           v:'34',     mc:'—',      mck:'flat' },
-            { l:'Avg Redemption Rate',   v:'12.4%',  mc:'▼ 1.8%', mck:'down' },
-            { l:'Miles Issued (MTD)',    v:'84.2M',  unit:'mi',   mc:'▲ 6.7%', mck:'up' },
-            { l:'Expiring in 7 Days',    v:'3',      mc:'⚠ attention', mck:'warn', click:()=>goTo('offers',{view:'expiring'}) },
-            { l:'Rewards Triggered',     v:'2,847',  mc:'▲ 12%',  mck:'up' },
-          ].map((t,i)=>(
-            <MetricTile key={i} label={t.l} value={t.v} unit={t.unit}
-                        change={t.mc} changeKind={t.mck} onClick={t.click}/>
-          ))}
+      <div className="dash-ref">
+        {/* GREETING ─────────────────────────────────── */}
+        <div className="dash-ref-greet">
+          <h1>Good morning, <em>Priya</em></h1>
+          <div className="sub">Tuesday · 14 May 2024 · Emirates Skywards · UAE Region</div>
         </div>
 
-        {/* Heatmap */}
-        <div className="card">
-          <div className="lbl-cap" style={{marginBottom:4}}>Skywards Miles Activity</div>
-          <div className="mute" style={{fontSize:12, marginBottom:14}}>Last 7 days · by tier</div>
-
-          <div className="heatmap">
-            <div></div>
-            {days.map(d => <div key={d} className="heat-label text-c">{d}</div>)}
-            {['Blue','Silver','Gold','Platinum'].map(tier => (
-              <React.Fragment key={tier}>
-                <div className="heat-label">{tier}</div>
-                {heat[tier].map((v,di)=>(
-                  <div key={di} className="heat-cell"
-                       style={{background:`rgba(${tierBase[tier]}, ${v})`}}>
-                    {tier==='Gold' && days[di]==='Thu' && (
-                      <div className="heat-tip">{tier} Tier · {days[di]} · 142 redemptions · ↓67% below peak</div>
-                    )}
-                  </div>
-                ))}
-              </React.Fragment>
-            ))}
+        {/* INTELLIGENCE STRIP — unchanged ──────────────── */}
+        <div className="dash-ref-strip">
+          <div className="dash-ref-strip-head">
+            <span className="dash-ref-label">What needs your attention</span>
           </div>
+          <div className="dash-ref-strip-grid">
 
-          <div className="divider" style={{margin:'16px 0'}}/>
-
-          <div className="tier-bar">
-            {[
-              { t:'Blue',     pct:28, ct:'1.38M members', color:'var(--accent-blue)'},
-              { t:'Silver',   pct:35, ct:'1.72M members', color:'var(--text-secondary)'},
-              { t:'Gold',     pct:25, ct:'1.23M members', color:'var(--accent-gold)'},
-              { t:'Platinum', pct:12, ct:'590K members',  color:'var(--accent-platinum)'},
-            ].map(t=>(
-              <div className="tier-row" key={t.t}>
-                <div className="row gap-6"><span className="dot" style={{background:t.color}}/><span style={{fontSize:12,color:'var(--text-primary)'}}>{t.t}</span></div>
-                <div className="tier-meter"><div style={{width:t.pct+'%', background:t.color}}/></div>
-                <div className="row gap-4" style={{fontSize:11,color:'var(--text-secondary)',justifyContent:'flex-end'}}><b style={{color:'var(--text-primary)',fontWeight:600}}>{t.pct}%</b> · {t.ct}</div>
+            <div className="dash-ref-insight dominant" style={{minHeight:160, display:'flex', flexDirection:'column'}} onClick={()=>goTo('offers', {filter:'gold'})}>
+              <span style={iconCornerStyle}><Icon name="TrendingDown" size={16} color="#ff6161"/></span>
+              <span className="ic-watermark" aria-hidden="true">18%</span>
+              <h4 className="ic-title-row">Gold Tier Redemption</h4>
+              <div className="ic-body" style={{display:'flex', alignItems:'center', gap:6, flexWrap:'wrap'}}>
+                <span style={{color:'var(--text-muted)'}}>Down</span>
+                <span style={{display:'inline-flex', alignItems:'center', gap:4, color:'var(--accent-red)', fontWeight:600}}>
+                  <Icon name="TrendingDown" size={12}/>18%
+                </span>
+                <span style={{color:'#4A5568', fontSize:11, width:'100%'}}>vs last week</span>
               </div>
-            ))}
+              <span className="ic-cta" style={{marginTop:'auto'}}>View Offer <Icon name="ArrowRight" size={11}/></span>
+            </div>
+
+            <div className="dash-ref-insight" style={{minHeight:160, display:'flex', flexDirection:'column'}} onClick={()=>openDrawer(1)}>
+              <span style={iconCornerStyle}><Icon name="TrendingUp" size={16} color="#59d499"/></span>
+              <h4 className="ic-title-row">Weekend BOGO — 340% Above Forecast</h4>
+              <p className="ic-body">Dubai · Marriott Bonvoy</p>
+              <span className="ic-cta" style={{marginTop:'auto'}}>View Offer <Icon name="ArrowRight" size={11}/></span>
+            </div>
+
+            <div className="dash-ref-insight" style={{minHeight:160, display:'flex', flexDirection:'column'}} onClick={()=>goTo('offers', {tab:'drafts'})}>
+              <span style={iconCornerStyle}><Icon name="AlertTriangle" size={16} color="#ffc533"/></span>
+              <h4 className="ic-title-row">Draft Stalled — Ramadan Miles Bonus</h4>
+              <p className="ic-body">3 offers expiring this week</p>
+              <span className="ic-cta" style={{marginTop:'auto'}}>Resume Draft <Icon name="ArrowRight" size={11}/></span>
+            </div>
+
+            <div className="dash-ref-insight" style={{minHeight:160, display:'flex', flexDirection:'column'}} onClick={()=>window.__toast && window.__toast('Coming in the next release.')}>
+              <span style={iconCornerStyle}><Icon name="DollarSign" size={16} color="#57c1ff"/></span>
+              <h4 className="ic-title-row">Reward Liability Up 12% This Month</h4>
+              <p className="ic-body">Platinum upgrades driving increase</p>
+              <span className="ic-cta" style={{marginTop:'auto'}}>View Report <Icon name="ArrowRight" size={11}/></span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ZONE 3 — Live Offers */}
-      <div className="col gap-12">
-        <div className="row between">
-          <div className="row gap-12">
-            <h2 className="h-2">Live Offers</h2>
-            <Pill kind="solid-dark">{camps.length} active</Pill>
-          </div>
-          <div className="row gap-10">
-            <ViewToggle value={view} onChange={setView}
-                        options={[{id:'table', label:'Table', icon:'Table'},
-                                  {id:'map',   label:'Map',   icon:'Map'}]}/>
-            <div className="btn-link row gap-4" onClick={()=>goTo('offers')}>View All <Icon name="ArrowRight" size={12}/></div>
+        {/* OFFER PIPELINE — transparent, single continuous line ─── */}
+        <div className="dash-ref-pipeline-strip">
+          <div className="dash-ref-pipeline-row">
+            {pipeline.flatMap((p, i) => {
+              const cell = (
+                <div className="dash-ref-pipe-cell" key={`stage-${p.stage}`}
+                     onClick={()=>goTo('offers', {status: p.stage})}>
+                  <span className="dash-ref-pipe-dot" style={{background:p.color}}/>
+                  <div className="dash-ref-pipe-meta">
+                    <span className="dash-ref-pipe-stage">{p.stage}</span>
+                    <span className="dash-ref-pipe-count">{p.count}</span>
+                  </div>
+                </div>
+              );
+              if (i === pipeline.length - 1) return [cell];
+              const connector = (
+                <span className="dash-ref-pipe-connector" key={`conn-${i}`} aria-hidden="true">
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                    <polyline points="2,1.5 5,4 2,6.5" stroke="rgba(255,255,255,0.35)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+              );
+              return [cell, connector];
+            })}
           </div>
         </div>
 
-        {view === 'table' && (
-          <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16}}>
-            {camps.map(c => (
-              <OfferCard key={c.id} c={c} onClick={()=>openDrawer(c.id)}/>
-            ))}
-          </div>
-        )}
+        {/* MAIN ROW — Live Offers | Side panel ───── */}
+        <div className="dash-ref-main">
 
-        {view === 'map' && (
-          <div className="col gap-12">
-            <div className="row gap-8">
-              <div className="mute" style={{fontSize:12}}>Connection mode:</div>
-              {[{id:'segment', label:'By Segment'},{id:'sponsor',label:'By Sponsor'},{id:'reward',label:'By Reward'}].map(m => (
-                <FilterChip key={m.id} label={m.label} active={mapMode===m.id} onClick={()=>setMapMode(m.id)}/>
+          {/* LEFT COLUMN */}
+          <div>
+            {/* Live Offers */}
+            <div className="dash-ref-section-head">
+              <span className="dash-ref-label">Live Offers <span style={{marginLeft:8, padding:'3px 8px', borderRadius:10, background:'#1a1d24', color:'var(--text-muted)', fontSize:11, fontWeight:500}}>{camps.length} active</span></span>
+              <div style={{display:'flex', alignItems:'center', gap:16}}>
+                <div className="dash-ref-toggle" role="tablist" aria-label="Live offers view">
+                  <button type="button" className={view==='table' ? 'active' : ''}
+                          aria-pressed={view==='table'}
+                          onClick={()=>setView('table')}>
+                    <Icon name="Table" size={12}/> Table
+                  </button>
+                  <button type="button" className={view==='map' ? 'active' : ''}
+                          aria-pressed={view==='map'}
+                          onClick={()=>setView('map')}>
+                    <Icon name="Map" size={12}/> Map
+                  </button>
+                </div>
+                <span className="dash-ref-link" onClick={()=>goTo('offers')}>
+                  View All Offers <Icon name="ArrowRight" size={11}/>
+                </span>
+              </div>
+            </div>
+            {view === 'table' ? (
+              <div className="dash-ref-offers-2col">
+                {camps.map(c => (
+                  <OfferCard key={c.id} c={c} onClick={()=>openDrawer(c.id)}/>
+                ))}
+              </div>
+            ) : (
+              <div style={{background:'var(--bg-surface)', border:'1px solid #1a1d24', borderRadius:10, padding:16}}>
+                <RelationshipGraph
+                  nodes={camps.map(c => ({ id:c.id, code:c.code, brand:c.brand, label:c.name, signal:c.sig, health:c.health, status:'live' }))}
+                  edges={[
+                    {a:1, b:5, group:'BOGO mechanic'},
+                    {a:1, b:6, group:'BOGO mechanic'},
+                    {a:5, b:6, group:'BOGO mechanic'},
+                    {a:2, b:3, group:'Bonus mechanic'},
+                  ]}
+                  height={360}
+                  onNodeClick={(n)=>openDrawer(n.id)}
+                  showLegend={true}
+                />
+              </div>
+            )}
+
+            {/* PARTNER ACTIVITY — flush under Live Offers grid ─── */}
+            <div className="dash-ref-section-head" style={{marginTop:24}}>
+              <span className="dash-ref-label">Partner Activity</span>
+              <span className="dash-ref-link" onClick={()=>window.__toast && window.__toast('Coming in the next release.')}>
+                View All Partners <Icon name="ArrowRight" size={11}/>
+              </span>
+            </div>
+            <div className="dash-ref-partners">
+              {partners.map(p => (
+                <div key={p.code} className="dash-ref-partner-tile" onClick={()=>window.__toast && window.__toast(`${p.brand} renews ${p.renewal}`)}>
+                  <Logo code={p.code} brand={p.brand} sm/>
+                  <div className="dash-ref-partner-meta">
+                    <span className="dash-ref-partner-brand">
+                      {p.brand}
+                      <span className="dash-ref-partner-status" style={{background: partnerStatusColor[p.status]}}/>
+                    </span>
+                    <span className="dash-ref-partner-renewal">Renews {p.renewal}</span>
+                  </div>
+                </div>
               ))}
             </div>
-            <RelationshipGraph
-              nodes={graphNodes}
-              edges={edges}
-              height={460}
-              onNodeClick={(n)=>openDrawer(n.id)}
-              showLegend={true}
-            />
+
           </div>
-        )}
-      </div>
+
+          {/* RIGHT COLUMN — Side panel */}
+          <div className="dash-ref-side">
+
+            {/* Program Health — 6 KPIs */}
+            <div className="dash-ref-side-card">
+              <div className="dash-ref-side-head">Program Health</div>
+              <div className="dash-ref-kpi-grid">
+                <div className="dash-ref-kpi"><span className="kpi-l"><Icon name="Users" size={11}/> Active Members</span><span className="kpi-v">12.4M</span><span className="kpi-c up"><Icon name="ArrowUp" size={9}/>3.2%</span></div>
+                <div className="dash-ref-kpi"><span className="kpi-l"><Icon name="Tag" size={11}/> Offers Live</span><span className="kpi-v">128</span><span className="kpi-c up"><Icon name="ArrowUp" size={9}/>4</span></div>
+                <div className="dash-ref-kpi"><span className="kpi-l"><Icon name="Zap" size={11}/> Redemption Rate</span><span className="kpi-v">18.6%</span><span className="kpi-c down"><Icon name="ArrowDown" size={9}/>1.8pp</span></div>
+                <div className="dash-ref-kpi"><span className="kpi-l"><Icon name="BarChart2" size={11}/> Miles Issued</span><span className="kpi-v">3.2B</span><span className="kpi-c up"><Icon name="ArrowUp" size={9}/>6.7%</span></div>
+                <div className="dash-ref-kpi"><span className="kpi-l"><Icon name="Gift" size={11}/> Rewards Triggered</span><span className="kpi-v">86.1K</span><span className="kpi-c up"><Icon name="ArrowUp" size={9}/>7.3%</span></div>
+                <div className="dash-ref-kpi"><span className="kpi-l"><Icon name="Clock" size={11}/> Expiring in 7 Days</span><span className="kpi-v">3</span><span className="kpi-c warn"><Icon name="AlertTriangle" size={9}/>attention</span></div>
+              </div>
+            </div>
+
+            {/* 7-day Redemption Trend */}
+            <div className="dash-ref-side-card">
+              <div className="dash-ref-side-head">
+                <span>Redemption Trend</span>
+                <span style={{font:'400 11px/1 Inter, sans-serif', color:'#4A5568'}}>last 7 days</span>
+              </div>
+              <div className="dash-ref-trend">
+                <svg viewBox="0 0 280 60" preserveAspectRatio="none" width="100%" height="60">
+                  {(() => {
+                    const pts = trend.map((v, i) => {
+                      const x = (i / (trend.length - 1)) * 280;
+                      const y = 60 - (v / trendMax) * 50 - 4;
+                      return [x, y];
+                    });
+                    const linePath = pts.map((p, i) => (i === 0 ? `M ${p[0]} ${p[1]}` : `L ${p[0]} ${p[1]}`)).join(' ');
+                    const areaPath = `${linePath} L 280 60 L 0 60 Z`;
+                    return (
+                      <>
+                        <defs>
+                          <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#E8B563" stopOpacity="0.30"/>
+                            <stop offset="100%" stopColor="#E8B563" stopOpacity="0"/>
+                          </linearGradient>
+                        </defs>
+                        <path d={areaPath} fill="url(#trendFill)"/>
+                        <path d={linePath} fill="none" stroke="#E8B563" strokeWidth="1.5"/>
+                        {pts.map((p, i) => (
+                          <circle key={i} cx={p[0]} cy={p[1]} r={i === pts.length - 1 ? 3 : 1.5} fill="#E8B563"/>
+                        ))}
+                      </>
+                    );
+                  })()}
+                </svg>
+                <div className="dash-ref-trend-labels">
+                  {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => <span key={d}>{d}</span>)}
+                </div>
+                <div className="dash-ref-trend-foot">
+                  <span><b style={{color:'var(--text-primary)'}}>{trend[trend.length-1].toLocaleString()}</b> redemptions today</span>
+                  <span style={{color:'#59d499'}}><Icon name="TrendingUp" size={10}/> +14% WoW</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Top 3 Performing Offers */}
+            <div className="dash-ref-side-card">
+              <div className="dash-ref-side-head">Top Performing Offers</div>
+              <ol className="dash-ref-top-list">
+                {topPerformers.map((c, i) => (
+                  <li key={c.id} onClick={()=>openDrawer(c.id)}>
+                    <span className="rank">{i+1}</span>
+                    <div className="meta">
+                      <span className="title">{c.name}</span>
+                      <span className="sub">{c.brand}</span>
+                    </div>
+                    <span className="score">{c.health}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            {/* Expiring Soon */}
+            <div className="dash-ref-side-card">
+              <div className="dash-ref-side-head">Expiring Soon</div>
+              <ul className="dash-ref-expire-list">
+                {expiring.map(e => (
+                  <li key={e.id} onClick={()=>openDrawer(e.id)}>
+                    <span className="dot" style={{background: e.days <= 3 ? '#ff6161' : '#ffc533'}}/>
+                    <div className="meta">
+                      <span className="title">{e.name}</span>
+                      <span className="sub">{e.brand}</span>
+                    </div>
+                    <span className="when">{e.days}d</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </PageLayout>
   );

@@ -31,24 +31,29 @@ function TemplateSelector({ goTo }) {
           highlighted
           title="Start from a Template"
           subtitle="Pre-built offer structures for common loyalty goals. Fully customizable."
-          ctaLabel="Browse Templates ↓"
+          ctaLabel={<>Browse Templates <Icon name="ArrowDown" size={12}/></>}
           onCTA={() => document.getElementById('tpl-grid')?.scrollIntoView({behavior:'smooth', block:'start'})}
           art={<TemplateArt/>}
         />
         <PathCard
           title="Build from Scratch"
           subtitle="Full control from the ground up. Best for custom mechanics and unique sponsor deals."
-          ctaLabel="Start Blank →"
+          ctaLabel={<>Start Blank <Icon name="ArrowRight" size={12}/></>}
           onCTA={()=>goTo('editor', {blank:true})}
           art={<BlankArt/>}
         />
       </div>
 
-      {/* AI banner */}
+      {/* AI banner — canonical purple, "Get AI Recommendations" CTA */}
       <div className="ai-insight" style={{marginBottom:20}}>
         <span className="sigil">✦</span>
-        <span style={{flex:1}}>Based on your Gold tier redemption gap, <b>Re-engagement templates</b> are recommended for your program right now.</span>
-        <Btn sm onClick={()=>setFilter('Re-engagement')}>Apply Filter →</Btn>
+        <div style={{flex:1, display:'flex', flexDirection:'column', gap:2}}>
+          <div style={{fontWeight:600}}>Need help getting started?</div>
+          <div style={{color:'var(--text-muted)', fontSize:12}}>Let AI recommend the best templates based on your goals and past performance.</div>
+        </div>
+        <button className="ai-cta" onClick={()=>setFilter('Re-engagement')}>
+          <span className="sigil">✦</span> Get AI Recommendations <Icon name="ArrowRight" size={12}/>
+        </button>
       </div>
 
       {/* Filter pills */}
@@ -58,9 +63,21 @@ function TemplateSelector({ goTo }) {
         ))}
       </div>
 
-      {/* Template grid */}
-      <div id="tpl-grid" style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16}}>
-        {shown.map(t => (
+      {/* Template grid — 4 columns, with empty-state card when filter has no matches */}
+      <div id="tpl-grid" className="tpl-grid">
+        {shown.length === 0 ? (
+          <div className="tpl-empty">
+            <svg className="tpl-empty-art" width="56" height="44" viewBox="0 0 56 44" fill="none">
+              <path d="M4 14 L28 4 L52 14 L52 38 L28 40 L4 38 Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+              <path d="M4 14 L28 22 L52 14" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M28 22 L28 40" stroke="currentColor" strokeWidth="1.5"/>
+              <circle cx="28" cy="4" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+            <h4>No templates found</h4>
+            <p>Try adjusting your filters or search terms to discover more templates.</p>
+            <Btn sm onClick={()=>setFilter('All')}>Clear Filters</Btn>
+          </div>
+        ) : shown.map(t => (
           <TemplateCard key={t.i}
                         template={t}
                         onSelect={(tpl) => tpl.i === 2 ? goTo('editor', {template:'tier-recovery'}) : null}/>
@@ -72,26 +89,23 @@ function TemplateSelector({ goTo }) {
 
 function TemplateArt() {
   return (
-    <svg width="92" height="68" viewBox="0 0 92 68" fill="none">
-      <rect x="8" y="14" width="34" height="44" rx="4" fill="rgba(212,168,83,0.12)" stroke="var(--accent-gold)" strokeWidth="1.5"/>
-      <rect x="30" y="22" width="34" height="44" rx="4" fill="rgba(212,168,83,0.2)" stroke="var(--accent-gold)" strokeWidth="1.5"/>
-      <circle cx="74" cy="20" r="10" fill="rgba(245,158,11,0.18)" stroke="var(--accent-amber)" strokeWidth="1.5"/>
-      <line x1="38" y1="32" x2="56" y2="32" stroke="var(--accent-gold)" strokeWidth="1"/>
-      <line x1="38" y1="40" x2="50" y2="40" stroke="var(--accent-gold)" strokeWidth="1"/>
-    </svg>
+    <dotlottie-wc
+      src="Sources/Template.lottie"
+      autoplay
+      loop
+      style={{width:92, height:92, display:'block'}}
+    />
   );
 }
 
 function BlankArt() {
   return (
-    <svg width="92" height="68" viewBox="0 0 92 68" fill="none">
-      <rect x="8" y="6" width="76" height="56" rx="4" stroke="var(--text-muted)" strokeWidth="1.5"/>
-      <line x1="8"  y1="22" x2="84" y2="22" stroke="var(--text-muted)" strokeWidth="1" strokeDasharray="3 3"/>
-      <line x1="8"  y1="42" x2="84" y2="42" stroke="var(--text-muted)" strokeWidth="1" strokeDasharray="3 3"/>
-      <line x1="32" y1="6"  x2="32" y2="62" stroke="var(--text-muted)" strokeWidth="1" strokeDasharray="3 3"/>
-      <line x1="60" y1="6"  x2="60" y2="62" stroke="var(--text-muted)" strokeWidth="1" strokeDasharray="3 3"/>
-      <circle cx="46" cy="34" r="3" fill="var(--accent-gold)"/>
-    </svg>
+    <dotlottie-wc
+      src="Sources/scratch.lottie"
+      autoplay
+      loop
+      style={{width:92, height:92, display:'block'}}
+    />
   );
 }
 

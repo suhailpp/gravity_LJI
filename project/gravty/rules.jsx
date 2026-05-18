@@ -12,7 +12,7 @@ function Rules() {
         timing:     'Claim window 7 days · Redemption window 30 days',
         spend:      'Minimum AED 500 · Min transaction AED 200',
         approval:   'Finance sign-off required · SLA 2 business days',
-        escalation: '80% quota → Notify Marketing Lead · 100% quota → Auto-pause offer'
+        escalation: <>80% quota <Icon name="ArrowRight" size={11}/> Notify Marketing Lead · 100% quota <Icon name="ArrowRight" size={11}/> Auto-pause offer</>
       },
       offerList:[
         {c:'MA', n:'Flat 50% Off Weekend Stays', h:87},
