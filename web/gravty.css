@@ -1,4 +1,4 @@
-/* GRAVTY tokens + base */
+/* GRAVITY tokens + base */
 :root, [data-theme="dark"] {
   --bg-base: #0A0C10;
   --bg-surface: #111318;
@@ -634,7 +634,7 @@ input, textarea, select { font: inherit; color: inherit; }
 .drawer-scrim.open { opacity: 1; pointer-events: auto; }
 .drawer {
   position: fixed; top: 84px; bottom: 0; right: 0;
-  width: 520px;
+  width: 650px;
   background: var(--bg-surface);
   border-left: 1px solid var(--border-default);
   backdrop-filter: blur(8px);

@@ -11,12 +11,15 @@ function Editor({ goTo, initial }) {
 
   // ── Step 1: Offer Details ──
   const [title, setTitle] = useState("Your Gold Status Deserves More — Summer Bonus Inside");
+  // Default sample so the editor lands populated (mirrors the preview the user has been seeing).
+  // Set to null at any time via the ✕ button on the Offer Imagery upload zone to see the empty state.
+  const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&q=70';
+  const [bannerImage, setBannerImage] = useState(DEFAULT_BANNER);
   const [showAlts, setShowAlts] = useState(false);
   const [campaignId, setCampaignId] = useState("EMSK_GOLD_RECOV_JUN24");
   const [locOn, setLocOn] = useState(true);
   const [arabicReady, setArabicReady] = useState(false);
   const [multiSp, setMultiSp] = useState(false);
-  const [priority, setPriority] = useState(85);
   const [mechanic, setMechanic] = useState('BOGO');
 
   // ── Step 2: Audience & Rules ──
@@ -223,7 +226,7 @@ function Editor({ goTo, initial }) {
               locOn={locOn} setLocOn={setLocOn}
               arabicReady={arabicReady} setArabicReady={setArabicReady}
               multiSp={multiSp} setMultiSp={setMultiSp}
-              priority={priority} setPriority={setPriority}/>
+              bannerImage={bannerImage} setBannerImage={setBannerImage}/>
           )}
           {step === 2 && (
             <Step2
@@ -302,8 +305,11 @@ function Editor({ goTo, initial }) {
                 step={step}
                 previewKind={previewKind} setPreviewKind={setPreviewKind}
                 previewMode={previewMode} setPreviewMode={setPreviewMode}
+                title={title}
+                endDate={endDate}
                 mechanic={mechanic}
                 tiers={tiers}
+                bannerImage={bannerImage}
                 liability={liability}
                 liabilityPulse={liabilityPulse}
                 onFullPreview={()=>setFullModal(true)}/>
@@ -323,8 +329,11 @@ function Editor({ goTo, initial }) {
       <FullPreviewModal
         open={fullModal}
         onClose={()=>setFullModal(false)}
+        title={title}
+        endDate={endDate}
         mechanic={mechanic}
-        tiers={tiers}/>
+        tiers={tiers}
+        bannerImage={bannerImage}/>
       </div>
     </PageLayout>
   );
@@ -401,10 +410,10 @@ function EditorBottomBar({ step, setStep, onSubmit, submitState, noApproval, can
 // ─── STEP 1 ────────────────────────────────
 function Step1({ title, setTitle, showAlts, setShowAlts, campaignId, setCampaignId,
                  mechanic, setMechanic, locOn, setLocOn, arabicReady, setArabicReady,
-                 multiSp, setMultiSp, priority, setPriority }) {
-  const priorityLabel = priority < 33 ? 'Low' : priority < 67 ? 'Medium' : 'High';
+                 multiSp, setMultiSp, bannerImage, setBannerImage }) {
   const len = title.length;
   const counterClass = len >= 60 ? 'danger' : len >= 50 ? 'warn' : '';
+  const [bannerFileName, setBannerFileName] = useState(null);
 
   const triggerUpload = () => {
     const input = document.createElement('input');
@@ -412,20 +421,23 @@ function Step1({ title, setTitle, showAlts, setShowAlts, campaignId, setCampaign
     input.accept = 'image/*';
     input.onchange = (e) => {
       const f = e.target.files && e.target.files[0];
-      if (f) {
-        const url = URL.createObjectURL(f);
-        const zone = document.getElementById('upload-banner-zone');
-        if (zone) {
-          zone.style.backgroundImage = `url(${url})`;
-          zone.style.backgroundSize = 'cover';
-          zone.style.backgroundPosition = 'center';
-          zone.style.borderStyle = 'solid';
-          zone.style.minHeight = '120px';
-          zone.innerHTML = '<div style="position:absolute; bottom:8px; left:8px; background:rgba(0,0,0,0.6); color:#fff; padding:4px 8px; border-radius:4px; font-size:11px;">' + f.name + '</div>';
-        }
-      }
+      if (!f) return;
+      // FileReader → data URL so the image survives state propagation, drag-resize,
+      // and modal open/close (object URLs are revoked when the input is GC'd).
+      const reader = new FileReader();
+      reader.onload = () => {
+        setBannerImage(reader.result);
+        setBannerFileName(f.name);
+      };
+      reader.readAsDataURL(f);
     };
     input.click();
+  };
+
+  const clearBanner = (e) => {
+    e.stopPropagation();
+    setBannerImage(null);
+    setBannerFileName(null);
   };
 
   return (
@@ -488,13 +500,38 @@ function Step1({ title, setTitle, showAlts, setShowAlts, campaignId, setCampaign
 
       <div className="field">
         <div className="field-label"><span className="lbl">Offer Imagery</span></div>
-        <div id="upload-banner-zone" className="input dashed" onClick={triggerUpload}
-             style={{cursor:'pointer', position:'relative', overflow:'hidden'}}>
-          <Icon name="Upload" size={20} color="var(--text-muted)"/>
-          <div style={{fontSize:13, marginTop:6}}>Upload Banner Image</div>
-          <div className="mute" style={{fontSize:11, marginTop:3}}>
-            PNG · JPG · up to 2MB · or <span className="lnk" style={{color:'var(--accent-gold)'}}>Use Asset Library</span>
-          </div>
+        <div className="input dashed" onClick={triggerUpload}
+             style={{
+               cursor:'pointer', position:'relative', overflow:'hidden',
+               minHeight: bannerImage ? 160 : undefined,
+               padding: bannerImage ? 0 : undefined,
+               borderStyle: bannerImage ? 'solid' : undefined,
+             }}>
+          {bannerImage ? (
+            <>
+              <img src={bannerImage} alt="" style={{display:'block', width:'100%', height:160, objectFit:'cover'}}/>
+              <div style={{
+                position:'absolute', bottom:8, left:8,
+                background:'rgba(0,0,0,0.6)', color:'#fff',
+                padding:'4px 8px', borderRadius:4, fontSize:11,
+              }}>{bannerFileName || 'Banner image'}</div>
+              <button onClick={clearBanner} title="Remove image" style={{
+                position:'absolute', top:8, right:8,
+                width:28, height:28, borderRadius:'50%',
+                background:'rgba(0,0,0,0.7)', border:'1px solid rgba(255,255,255,0.2)',
+                color:'#fff', cursor:'pointer',
+                display:'flex', alignItems:'center', justifyContent:'center',
+              }}><Icon name="X" size={14}/></button>
+            </>
+          ) : (
+            <>
+              <Icon name="Upload" size={20} color="var(--text-muted)"/>
+              <div style={{fontSize:13, marginTop:6}}>Upload Banner Image</div>
+              <div className="mute" style={{fontSize:11, marginTop:3}}>
+                PNG · JPG · up to 2MB · or <span className="lnk" style={{color:'var(--accent-gold)'}}>Use Asset Library</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -536,17 +573,10 @@ function Step1({ title, setTitle, showAlts, setShowAlts, campaignId, setCampaign
           <div className="field-label"><span className="lbl">CTA Label</span></div>
           <div className="input select">Unlock Offer</div>
         </div>
-        <div className="field">
-          <div className="field-label">
-            <span className="lbl">Priority Level</span>
-            <span style={{fontSize:12, color:'var(--accent-gold)', fontWeight:600}}>{priorityLabel}</span>
-          </div>
-          <PrioritySlider value={priority} onChange={setPriority}/>
-        </div>
       </div>
 
       <div className="field">
-        <div className="field-label">
+        <div className="field-label" style={{justifyContent:'flex-start', gap:12}}>
           <span className="lbl">Localization</span>
           <Toggle on={locOn} onToggle={()=>setLocOn(!locOn)}/>
         </div>
@@ -1034,7 +1064,7 @@ function Step5({ arabicComplete, setArabicComplete, fundingComplete, setFundingC
 
       <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:14}}>
         {[
-          {ok:true, t:'Offer Details', s:'Marriott Bonvoy · BOGO · CTA: Unlock Offer · Priority High'},
+          {ok:true, t:'Offer Details', s:'Marriott Bonvoy · BOGO · CTA: Unlock Offer'},
           {ok: !hasBlackoutConflict, t:'Audience & Rules', s:`Lapsed Gold Members · Premium Member Rules · ${regionsCount} regions · Est. reach: 45,200`},
           {ok: fundingComplete && !hasBlackoutConflict, t:'Schedule & Operations', s:`${approvalChoice === 'none' ? 'Publish directly' : approvalChoice === 'finance' ? 'Finance sign-off' : 'Marketing Head approval'} · ${fundingComplete ? 'Funding confirmed' : 'Funding pending'}`},
           {ok:true, t:'Reward Configuration', s:'BOGO 1 free night · Min 2 nights · Quota 25,000 · Max 1/member'},
@@ -1102,7 +1132,9 @@ function Step5({ arabicComplete, setArabicComplete, fundingComplete, setFundingC
 
 // ─── LIVE PREVIEW ─────────────────────────
 function LivePreview({ step, previewKind, setPreviewKind, previewMode, setPreviewMode,
-                       mechanic, tiers, liability, liabilityPulse, onFullPreview }) {
+                       title, endDate, mechanic, tiers, bannerImage, liability, liabilityPulse, onFullPreview }) {
+  // Web preview tab renders a wider card to feel tablet-like; Mobile preview tab is phone-sized.
+  const isWeb = previewKind === 'web';
   return (
     <div className="card" style={{padding:18, position:'relative'}}>
       <div className="row between" style={{marginBottom:12}}>
@@ -1124,16 +1156,129 @@ function LivePreview({ step, previewKind, setPreviewKind, previewMode, setPrevie
         </div>
       </div>
 
-      {previewKind === 'mobile' ? (
-        <OfferMobileCard step={step} previewMode={previewMode} setPreviewMode={setPreviewMode} mechanic={mechanic} tiers={tiers}/>
-      ) : (
-        <OfferWebCard mechanic={mechanic} tiers={tiers} previewMode={previewMode} setPreviewMode={setPreviewMode}/>
-      )}
+      {/* View toggle: Card / Details — applies to both Mobile and Web preview tabs */}
+      <div className="row gap-4" style={{marginBottom:14}}>
+        <FilterChip label="Card View"    active={previewMode==='card'}    onClick={()=>setPreviewMode('card')}/>
+        <FilterChip label="Details Page" active={previewMode==='details'} onClick={()=>setPreviewMode('details')}/>
+      </div>
+
+      <SharedOfferPreview
+        previewMode={previewMode}
+        frame={isWeb ? 'web' : 'phone'}
+        width={isWeb ? 460 : 340}
+        height={isWeb ? 720 : 620}
+        title={title} endDate={endDate} mechanic={mechanic} tiers={tiers}
+        bannerImage={bannerImage}
+      />
 
       <div className="divider" style={{margin:'14px 0'}}/>
       <div className="mute" style={{fontSize:11, lineHeight:1.5}}>
         <span style={{color:'var(--accent-gold)'}}>↻</span> Preview updates as you fill in fields. Currently showing data from Step{step>1?'s 1–':' '}{step}.
       </div>
+    </div>
+  );
+}
+
+// ─── Shared Offer Preview ───────────────────────────────────
+// Single unified preview used by LivePreview (both Mobile and Web tabs) AND
+// FullPreviewModal. Renders the shared <MobileOfferCard/> or <OfferDetailPage/>
+// (from shared/OfferCard.jsx + shared/OfferDetailPage.jsx) inside the mobile
+// <IOSDevice/> with chrome stripped (no status bar, no back chevron, no ⋯).
+// Width/height drive the iOS frame so the same component handles phone,
+// tablet, and the wider "web" surface.
+function SharedOfferPreview({ previewMode = 'card', width = 340, height = 620, frame = 'phone', title, endDate, mechanic, tiers, bannerImage }) {
+  const MobileOfferCard = window.MobileOfferCard;
+  const OfferDetailPage = window.OfferDetailPage;
+  const IOSDevice = window.IOSDevice;
+  if (!MobileOfferCard || !OfferDetailPage || !IOSDevice) {
+    return <div className="mute" style={{fontSize:12, padding:'20px 0', textAlign:'center'}}>Loading preview…</div>;
+  }
+  // Synthetic offer bound to live editor state.
+  const offer = {
+    id: 'preview',
+    partner: 'Marriott Bonvoy',
+    domain: 'marriott.com',
+    title: title || 'Flat 50% Off Weekend Stays',
+    desc: 'Book any 2-night stay this weekend and save 50% at Marriott properties across UAE.',
+    miles: 500,
+    expires: (endDate || 'Jun 30').replace(/,.*$/, '').trim(),
+    // bannerImage comes from the editor's Offer Imagery upload. When null,
+    // shared MobileOfferCard / OfferDetailPage render with no <img> at all —
+    // only the gradient swatch shows, which is the empty state we want.
+    image: bannerImage || null,
+    swatch: ['#3a2a1a', '#1a1208'],
+    mechanic,
+    code: 'MARRIOTT50',
+    tier: tiers && tiers.size ? Array.from(tiers).join(' · ') : 'Gold',
+    region: 'UAE',
+    elite: true,
+    minStay: '2 nights',
+    minSpend: 'AED 800/night',
+    valid: 'Jun 1 – Jul 31',
+    max: '1 redemption',
+  };
+
+  // Inner content (offer card or details page). For details, OfferDetailPage
+  // brings its own sticky header. For card view we add a simple "Offers" label
+  // matching the mobile screen.
+  const inner = previewMode === 'details'
+    ? <OfferDetailPage offer={offer} onToast={()=>{}} />
+    : (
+      <div style={{ padding: '20px 24px 40px', display:'flex', flexDirection:'column', gap:14 }}>
+        {frame === 'web' && (
+          <div style={{
+            fontFamily:'-apple-system, system-ui', fontSize:28, fontWeight:700,
+            color:'#fff', letterSpacing:0.4,
+          }}>Offers</div>
+        )}
+        <MobileOfferCard offer={offer} width="100%" />
+      </div>
+    );
+
+  const tokenScope = {
+    // Mobile design tokens — defined in mobile/index.html :root; we shadow them here for web.
+    '--text-1': '#F0EDE8',
+    '--text-2': 'rgba(240,237,232,0.5)',
+    '--text-3': 'rgba(240,237,232,0.25)',
+    '--gold-dim': 'rgba(201,148,42,0.6)',
+    '--surface': '#0C0F16',
+    display: 'flex', justifyContent: 'center', padding: '4px 0',
+  };
+
+  if (frame === 'web') {
+    // Plain dark rectangular surface (no phone borderRadius / island). For
+    // tablet/web preview where the iPhone shape would feel oversized.
+    return (
+      <div style={tokenScope}>
+        <div style={{
+          width, height,
+          background: '#0a0a0f',
+          borderRadius: 14,
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 30px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.6)',
+          overflow: 'hidden',
+          display: 'flex', flexDirection: 'column',
+        }}>
+          <div style={{ flex: 1, overflow: 'auto' }}>{inner}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default: phone frame via IOSDevice (chrome stripped).
+  return (
+    <div style={tokenScope}>
+      <IOSDevice
+        width={width} height={height} dark={true}
+        title={previewMode === 'details' ? undefined : 'Offers'}
+        hideStatusBar hideBackButton trailingIcon={false}
+      >
+        <div style={{ background: '#0a0a0f', minHeight: '100%', boxSizing: 'border-box' }}>
+          {previewMode === 'details'
+            ? <OfferDetailPage offer={offer} onToast={()=>{}} />
+            : <div style={{ padding: '20px 16px 40px' }}><MobileOfferCard offer={offer} width="100%" /></div>}
+        </div>
+      </IOSDevice>
     </div>
   );
 }
@@ -1301,8 +1446,14 @@ function OfferWebCard({ mechanic, tiers, fullSize, previewMode, setPreviewMode }
 }
 
 // ─── FULL PREVIEW MODAL ───
-function FullPreviewModal({ open, onClose, mechanic, tiers }) {
+function FullPreviewModal({ open, onClose, title, endDate, mechanic, tiers, bannerImage }) {
   const [mode, setMode] = useState('card');
+  // Web surface width is user-controlled via a drag handle on its right edge.
+  // Phone surface is fixed; only the web one resizes.
+  const WEB_MIN = 480, WEB_MAX = 1100;
+  const [webWidth, setWebWidth] = useState(720);
+  const dragState = useRef({ active: false, startX: 0, startW: 0 });
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -1310,10 +1461,36 @@ function FullPreviewModal({ open, onClose, mechanic, tiers }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  const beginDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragState.current = { active: true, startX: e.clientX, startW: webWidth };
+    const onMove = (ev) => {
+      if (!dragState.current.active) return;
+      const dx = ev.clientX - dragState.current.startX;
+      const next = Math.min(WEB_MAX, Math.max(WEB_MIN, dragState.current.startW + dx));
+      setWebWidth(next);
+    };
+    const onUp = () => {
+      dragState.current.active = false;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
+  const PHONE_W = 380, PHONE_H = 720;
+  const webHeight = Math.min(880, Math.max(560, Math.round(webWidth * 1.15)));
+
   return (
     <div className={"modal-scrim " + (open?'open':'')} onClick={(e)=>{ if (e.target === e.currentTarget) onClose(); }}
          style={{left:56, top:84, width:'calc(100vw - 56px)', height:'calc(100vh - 84px)', position:'fixed', zIndex:800, background:'rgba(0,0,0,0.4)', backdropFilter:'blur(4px)', display: open ? 'flex' : 'none', alignItems:'center', justifyContent:'center'}}>
-      <div className="modal-frame" style={{position:'relative', width:'calc(100% - 48px)', height:'calc(100% - 48px)', maxWidth:'none', maxHeight:'none', borderRadius:12, transform:'none', margin:0}}>
+      <div className="modal-frame" style={{position:'relative', width:'calc(100% - 48px)', height:'calc(100% - 48px)', maxWidth:'none', maxHeight:'none', borderRadius:12, transform:'none', margin:0, display:'flex', flexDirection:'column'}}>
         <div className="modal-head">
           <div className="row gap-8">
             <span className="sora" style={{fontSize:16, fontWeight:600}}>Full Preview</span>
@@ -1321,26 +1498,62 @@ function FullPreviewModal({ open, onClose, mechanic, tiers }) {
           </div>
           <div className="row gap-10">
             <div className="row gap-4" style={{padding:2, background:'var(--bg-overlay)', borderRadius:6}}>
-              <FilterChip label="Card View"     active={mode==='card'}     onClick={()=>setMode('card')}/>
-              <FilterChip label="Expanded View" active={mode==='expanded'} onClick={()=>setMode('expanded')}/>
+              <FilterChip label="Card View"    active={mode==='card'}    onClick={()=>setMode('card')}/>
+              <FilterChip label="Details Page" active={mode==='details'} onClick={()=>setMode('details')}/>
             </div>
             <button className="icon-btn" onClick={onClose}><Icon name="X" size={16}/></button>
           </div>
         </div>
-        <div className="modal-body" style={{padding:40}}>
-          <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:14, flex:'0 0 auto'}}>
+
+        <div className="modal-body" style={{padding:'32px 40px', display:'flex', alignItems:'flex-start', justifyContent:'center', gap:48, overflow:'auto', flex:1}}>
+          {/* Mobile — fixed */}
+          <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:12, flex:'0 0 auto'}}>
             <div className="row gap-6">
               <Icon name="Smartphone" size={14} color="var(--accent-gold)"/>
-              <span className="lbl-cap" style={{color:'var(--accent-gold)'}}>Mobile · 375px</span>
+              <span className="lbl-cap" style={{color:'var(--accent-gold)'}}>Mobile · {PHONE_W}px</span>
             </div>
-            <OfferMobileCard step={5} previewMode={mode} mechanic={mechanic} tiers={tiers} fullSize/>
+            <SharedOfferPreview
+              previewMode={mode}
+              frame="phone"
+              width={PHONE_W} height={PHONE_H}
+              title={title} endDate={endDate} mechanic={mechanic} tiers={tiers}
+              bannerImage={bannerImage}
+            />
           </div>
-          <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:14, maxWidth:680, flex:1, minWidth:0}}>
+
+          {/* Web — draggable */}
+          <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:12, flex:'0 0 auto'}}>
             <div className="row gap-6">
               <Icon name="Monitor" size={14} color="var(--accent-gold)"/>
-              <span className="lbl-cap" style={{color:'var(--accent-gold)'}}>Web · 600px</span>
+              <span className="lbl-cap" style={{color:'var(--accent-gold)'}}>Web · {webWidth}px <span style={{opacity:0.6, marginLeft:6}}>· drag edge to resize</span></span>
             </div>
-            <OfferWebCard mechanic={mechanic} tiers={tiers} previewMode={mode} fullSize/>
+            <div style={{position:'relative'}}>
+              <SharedOfferPreview
+                previewMode={mode}
+                frame="web"
+                width={webWidth} height={webHeight}
+                title={title} endDate={endDate} mechanic={mechanic} tiers={tiers}
+                bannerImage={bannerImage}
+              />
+              {/* Resize handle — pinned to the right edge of the web surface */}
+              <div
+                onMouseDown={beginDrag}
+                title="Drag to resize"
+                style={{
+                  position:'absolute', top:0, bottom:0, right:-14, width:28,
+                  cursor:'ew-resize',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  zIndex:10,
+                }}
+              >
+                <div style={{
+                  width:6, height:64, borderRadius:3,
+                  background:'var(--accent-gold)',
+                  boxShadow:'0 0 12px rgba(201,148,42,0.45)',
+                  opacity:0.85,
+                }}/>
+              </div>
+            </div>
           </div>
         </div>
       </div>

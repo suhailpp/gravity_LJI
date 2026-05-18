@@ -81,7 +81,7 @@ function IOSGlassPill({ children, dark = false, style = {} }) {
 // ─────────────────────────────────────────────────────────────
 // Navigation bar — glass pills + large title
 // ─────────────────────────────────────────────────────────────
-function IOSNavBar({ title = 'Title', dark = false, trailingIcon = true }) {
+function IOSNavBar({ title = 'Title', dark = false, trailingIcon = true, showBack = true, topPadding = 62 }) {
   const muted = dark ? 'rgba(255,255,255,0.6)' : '#404040';
   const text = dark ? '#fff' : '#000';
   const pillIcon = (content) => (
@@ -91,30 +91,31 @@ function IOSNavBar({ title = 'Title', dark = false, trailingIcon = true }) {
       </div>
     </IOSGlassPill>
   );
+  const hasChrome = showBack || trailingIcon;
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', gap: 10,
-      paddingTop: 62, paddingBottom: 10, position: 'relative', zIndex: 5,
+      paddingTop: topPadding, paddingBottom: 10, position: 'relative', zIndex: 5,
     }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px',
-      }}>
-        {/* back chevron */}
-        {pillIcon(
-          <svg width="12" height="20" viewBox="0 0 12 20" fill="none" style={{ marginLeft: -1 }}>
-            <path d="M10 2L2 10l8 8" stroke={muted} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        )}
-        {/* trailing ellipsis */}
-        {trailingIcon && pillIcon(
-          <svg width="22" height="6" viewBox="0 0 22 6">
-            <circle cx="3" cy="3" r="2.5" fill={muted}/>
-            <circle cx="11" cy="3" r="2.5" fill={muted}/>
-            <circle cx="19" cy="3" r="2.5" fill={muted}/>
-          </svg>
-        )}
-      </div>
+      {hasChrome && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 16px', minHeight: 36,
+        }}>
+          {showBack ? pillIcon(
+            <svg width="12" height="20" viewBox="0 0 12 20" fill="none" style={{ marginLeft: -1 }}>
+              <path d="M10 2L2 10l8 8" stroke={muted} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ) : <span/>}
+          {trailingIcon ? pillIcon(
+            <svg width="22" height="6" viewBox="0 0 22 6">
+              <circle cx="3" cy="3" r="2.5" fill={muted}/>
+              <circle cx="11" cy="3" r="2.5" fill={muted}/>
+              <circle cx="19" cy="3" r="2.5" fill={muted}/>
+            </svg>
+          ) : <span/>}
+        </div>
+      )}
       {/* large title */}
       <div style={{
         padding: '0 16px',
@@ -190,6 +191,9 @@ function IOSList({ header, children, dark = false }) {
 function IOSDevice({
   children, width = 402, height = 874, dark = false,
   title, keyboard = false,
+  hideStatusBar = false,        // strip 9:41 + signal/wifi/battery row
+  hideBackButton = false,       // strip ‹ back chevron in nav bar
+  trailingIcon = true,          // pass-through to IOSNavBar (set false to strip ⋯)
 }) {
   return (
     <div style={{
@@ -204,13 +208,23 @@ function IOSDevice({
         position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)',
         width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 50,
       }} />
-      {/* status bar (absolute) */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
-        <IOSStatusBar dark={dark} />
-      </div>
+      {/* status bar (absolute) — skipped when hideStatusBar */}
+      {!hideStatusBar && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+          <IOSStatusBar dark={dark} />
+        </div>
+      )}
       {/* nav + content */}
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        {title !== undefined && <IOSNavBar title={title} dark={dark} />}
+        {title !== undefined && (
+          <IOSNavBar
+            title={title}
+            dark={dark}
+            trailingIcon={trailingIcon}
+            showBack={!hideBackButton}
+            topPadding={hideStatusBar ? 58 : 62}
+          />
+        )}
         <div style={{ flex: 1, overflow: 'auto' }}>{children}</div>
         {keyboard && <IOSKeyboard dark={dark} />}
       </div>

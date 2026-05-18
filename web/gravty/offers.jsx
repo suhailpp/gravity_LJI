@@ -214,8 +214,8 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
         )}
         {view === 'table' && (rows.length > 0 ? (
           <div className="tbl" style={{width:'100%', overflow:'visible'}}>
-            {/* SPONSOR 90 | OFFER 1fr (truncates) | MECHANIC 90 | TIER 110 | REGION 100 | TIMELINE 110 | SIGNAL 130 | STATUS 90 | HEALTH 120 | ACTIONS 90 */}
-            <div className="tbl-head" style={{gridTemplateColumns:'90px 1fr 90px 110px 100px 110px 130px 90px 120px 90px', columnGap:'24px', padding:'8px 24px', position:'sticky', top: STICKY_TOP + HEADER_H + TABS_H, zIndex:10}}>
+            {/* SPONSOR 90 | OFFER 1fr (truncates) | MECHANIC 90 | TIER 200 | REGION 100 | TIMELINE 110 | SIGNAL 130 | STATUS 90 | HEALTH 120 | ACTIONS 90 */}
+            <div className="tbl-head" style={{gridTemplateColumns:'90px 1fr 90px 200px 100px 110px 130px 90px 120px 90px', columnGap:'24px', padding:'8px 24px', position:'sticky', top: STICKY_TOP + HEADER_H + TABS_H, zIndex:10}}>
               <span>Sponsor</span>
               <span>Offer</span>
               <span>Mechanic</span>
@@ -261,7 +261,7 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
               const regionShown = r.region.slice(0, 3);
               const regionExtra = r.region.length - 3;
               return (
-                <div key={r.id} className="tbl-row" style={{gridTemplateColumns:'90px 1fr 90px 110px 100px 110px 130px 90px 120px 90px', columnGap:'24px', padding:'10px 24px'}} onClick={()=>openDrawer(r.id)}>
+                <div key={r.id} className="tbl-row" style={{gridTemplateColumns:'90px 1fr 90px 200px 100px 110px 130px 90px 120px 90px', columnGap:'24px', padding:'10px 24px'}} onClick={()=>openDrawer(r.id)}>
                   {/* Sponsor — 100px */}
                   <div style={{display:'flex', gap:8, alignItems:'center', overflow:'hidden'}}>
                     <Logo code={r.code} brand={r.sponsor} style={{flexShrink:0}}/>

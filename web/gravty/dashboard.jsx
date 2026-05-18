@@ -185,11 +185,8 @@ function Dashboard({ goTo, openAi, openDrawer }) {
 
         {/* PROGRAM HEALTH — full-width banner above attention strip ─── */}
         <div style={{padding:'18px 0 22px', marginBottom:16, borderBottom:'1px solid var(--border-subtle)'}}>
-          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14}}>
+          <div style={{marginBottom:14}}>
             <span className="dash-ref-label">Program Health</span>
-            <span className="dash-ref-link" style={{color:'var(--accent-gold)'}} onClick={()=>window.__toast && window.__toast('Coming in the next release.')}>
-              View All Metrics <Icon name="ArrowRight" size={11}/>
-            </span>
           </div>
           <div style={{display:'grid', gridTemplateColumns:'repeat(5, 1fr)'}}>
             {[

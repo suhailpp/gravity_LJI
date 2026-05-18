@@ -74,12 +74,12 @@ function App() {
     rules:'Rules'
   };
   const breadcrumbs = {
-    dashboard: ['GRAVTY', 'Dashboard'],
-    offers:    ['GRAVTY', 'Offers'],
-    templates: ['GRAVTY', 'Offers', 'Create New Offer'],
-    editor:    ['GRAVTY', 'Offers', 'Create', 'Tier Recovery Offer'],
-    segments:  ['GRAVTY', 'Segments'],
-    rules:     ['GRAVTY', 'Rules'],
+    dashboard: ['GRAVITY', 'Dashboard'],
+    offers:    ['GRAVITY', 'Offers'],
+    templates: ['GRAVITY', 'Offers', 'Create New Offer'],
+    editor:    ['GRAVITY', 'Offers', 'Create', 'Tier Recovery Offer'],
+    segments:  ['GRAVITY', 'Segments'],
+    rules:     ['GRAVITY', 'Rules'],
   };
 
   return (
@@ -111,7 +111,7 @@ function App() {
 
       {/* Top bar */}
       <div className="top-bar">
-        <div className="brand-mark" onClick={()=>goTo('dashboard')} style={{cursor:'pointer'}} title="Back to Dashboard">GRAVTY<sup>®</sup></div>
+        <div className="brand-mark" onClick={()=>goTo('dashboard')} style={{cursor:'pointer'}} title="Back to Dashboard">GRAVITY<sup>®</sup></div>
         <div className="brand-sep"/>
         <div className="client-switcher">
           <div className="client-flag"/>
@@ -170,7 +170,7 @@ function App() {
       {/* Drawer + scrim */}
       <div className={"drawer-scrim " + (drawerOpen?'open':'')} onClick={closeDrawer}/>
       <div className={"drawer " + (drawerOpen?'open':'')}>
-        {drawerOpen && <DrawerContent id={drawerId} onClose={closeDrawer}/>}
+        {drawerOpen && <DrawerContent id={drawerId} onClose={closeDrawer} goTo={goTo}/>}
       </div>
 
       {/* Floating AI widget */}
@@ -193,7 +193,8 @@ function App() {
 }
 
 // ─── DRAWER CONTENT ────────────────────────
-function DrawerContent({ id, onClose }) {
+function DrawerContent({ id, onClose, goTo }) {
+  const openEditor = () => { onClose && onClose(); goTo && goTo('editor', { id }); };
   // Default detail = Ramadan Miles Bonus (id 3) — fall through if id unknown
   const __raw = offerById(id) || offerById(3);
   const d = {
@@ -202,6 +203,7 @@ function DrawerContent({ id, onClose }) {
     status: __raw.status,
     signal: __raw.signal,
     health: __raw.health, delta: __raw.delta, target: __raw.target,
+    image: __raw.image, // banner image (data URL or absolute URL). When absent, drawer shows empty banner state.
     region: Array.isArray(__raw.region) ? __raw.region.join(' · ') : __raw.region,
     tiers:  Array.isArray(__raw.tiers)  ? __raw.tiers.join(' · ')  : __raw.tiers,
   };
@@ -227,6 +229,21 @@ function DrawerContent({ id, onClose }) {
       </div>
 
       <div className="drawer-body">
+        {/* Banner — only renders when the offer has an image. Same source of truth as the editor live preview. */}
+        {d.image && (
+          <div style={{
+            position:'relative',
+            height: 160,
+            marginBottom: 18,
+            borderRadius: 10,
+            overflow: 'hidden',
+            background: '#0c0f16',
+            border: '1px solid var(--border-subtle)',
+          }}>
+            <img src={d.image} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}}/>
+          </div>
+        )}
+
         {d.health != null ? (
           <>
             <div className="drawer-section">
@@ -278,12 +295,12 @@ function DrawerContent({ id, onClose }) {
 
         <div className="drawer-cta-bar">
           {d.status === 'live' ? <>
-            <Btn kind="primary" sm icon={<Icon name="Edit" size={12}/>}>Edit Offer</Btn>
+            <Btn kind="primary" sm icon={<Icon name="Edit" size={12}/>} onClick={openEditor}>Edit Offer</Btn>
             <Btn sm icon={<Icon name="Copy" size={12}/>}>Duplicate</Btn>
             <Btn sm icon={<Icon name="Clock" size={12}/>}>Extend Dates</Btn>
             <Btn sm kind="ghost" icon={<Icon name="Pause" size={12}/>}>Pause</Btn>
           </> : d.status === 'scheduled' ? <>
-            <Btn kind="primary" sm icon={<Icon name="Edit" size={12}/>}>Edit Offer</Btn>
+            <Btn kind="primary" sm icon={<Icon name="Edit" size={12}/>} onClick={openEditor}>Edit Offer</Btn>
             <Btn sm icon={<Icon name="Copy" size={12}/>}>Duplicate</Btn>
             <Btn sm kind="ghost" icon={<Icon name="X" size={12}/>}>Cancel</Btn>
             <Btn sm kind="ghost" icon={<Icon name="Clock" size={12}/>}>Reschedule</Btn>
@@ -416,7 +433,7 @@ function FloatingAIWidget({ onOpen }) {
       className={"ai-widget " + (dragging ? 'dragging' : '')}
       style={{ left: pos.x, top: pos.y }}
       onMouseDown={onMouseDown}
-      title="GRAVTY Intelligence — drag to move">
+      title="GRAVITY Intelligence — drag to move">
       <dotlottie-wc
         src="Sources/AI.lottie"
         autoplay
@@ -439,7 +456,7 @@ function AIPanel({ onClose, query, setQuery, onCTA }) {
       <div className="head">
         <div className="row gap-8">
           <span className="sigil">✦</span>
-          <span style={{fontSize:13, fontWeight:500, fontFamily:'Sora, sans-serif'}}>{query ? query : 'GRAVTY Intelligence'}</span>
+          <span style={{fontSize:13, fontWeight:500, fontFamily:'Sora, sans-serif'}}>{query ? query : 'GRAVITY Intelligence'}</span>
         </div>
         <button className="icon-btn" onClick={onClose} style={{width:24, height:24}}><Icon name="X" size={14}/></button>
       </div>

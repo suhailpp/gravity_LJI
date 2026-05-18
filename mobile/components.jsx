@@ -200,7 +200,8 @@ function TopBar({ unread = true, showTier = true }) {
       overflow: 'visible', height: "80px"
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, lineHeight: "4.55" }}>
-        <EmiratesMark size={36} />
+        <img src="assets/emirates-skywards-logo.svg" alt="Emirates Skywards"
+          style={{ height: 28, width: 'auto', display: 'block' }} />
         <div style={{
           fontFamily: FONT_UI, fontWeight: 500, fontSize: 14,
           letterSpacing: '0.1em', textTransform: 'uppercase',
@@ -604,106 +605,10 @@ function GoldButton({ children, onClick, height = 48, full = true, style = {},
 }
 
 // ─────────────────────────────────────────────────────────────
-// Unified OfferCard — 280px wide × ~320 tall
-// Layout: image 160 → spacer/logo overlap → content → Redeem
+// OfferCard — extracted to shared/OfferCard.jsx (loaded as a sibling
+// script in mobile/index.html). It reads PartnerLogo / MoreDots /
+// MoreMenu / CardCTA / FONT_UI / FONT_DISPLAY / RADIUS off window.
 // ─────────────────────────────────────────────────────────────
-function OfferCard({ offer, distance, onOpen, onAction, width = 280 }) {
-  return (
-    <div className="press-card" style={{
-      width, flexShrink: 0,
-      borderRadius: RADIUS,
-      background: 'rgba(255,255,255,0.03)',
-      border: '1px solid rgba(255,255,255,0.07)',
-      position: 'relative',
-      boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
-      overflow: 'visible', // parent overflow visible so logo never clips
-      display: 'flex', flexDirection: 'column',
-    }}>
-      {/* image area */}
-      <div onClick={onOpen} role="button" tabIndex={0} style={{
-        cursor: 'pointer', position: 'relative',
-        height: 160,
-        borderTopLeftRadius: RADIUS,
-        borderTopRightRadius: RADIUS,
-        background: `linear-gradient(135deg, ${offer.swatch[0]}, ${offer.swatch[1]})`,
-        overflow: 'hidden'
-      }}>
-        {offer.image &&
-        <img src={offer.image} alt=""
-        referrerPolicy="no-referrer"
-        style={{
-          position: 'absolute', inset: 0,
-          width: '100%', height: '100%', objectFit: 'cover',
-          opacity: 0.82
-        }} />
-        }
-        {/* fade into card bg at bottom 40px */}
-        <div style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0,
-          height: 60,
-          background: 'linear-gradient(to bottom, rgba(7,9,14,0) 0%, rgba(12,15,22,0.55) 60%, rgba(12,15,22,0.92) 100%)'
-        }} />
-        {/* distance chip top-left */}
-        {distance &&
-        <span style={{
-          position: 'absolute', top: 12, left: 12,
-          padding: '4px 9px', borderRadius: 999,
-          background: 'rgba(7,9,14,0.55)',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255,255,255,0.12)',
-          fontFamily: FONT_UI, fontSize: 11,
-          color: 'var(--text-1)', fontWeight: 400
-        }}>{distance}</span>
-        }
-      </div>
-
-      {/* partner logo — bottom-overlap, parent has overflow visible */}
-      <div style={{ position: 'absolute', top: 160 - 20, left: 20, zIndex: 4 }}>
-        <PartnerLogo domain={offer.domain} size={40} />
-      </div>
-
-      {/* content — first padding-top accounts for logo overlap */}
-      <div onClick={onOpen} style={{
-        cursor: 'pointer',
-        padding: '28px 20px 0'
-      }}>
-        <div style={{
-          fontFamily: FONT_UI, fontWeight: 400, fontSize: 13,
-          color: 'var(--gold-dim)', letterSpacing: '0.02em',
-          lineHeight: 1.2
-        }}>{offer.partner}</div>
-        <div style={{
-          marginTop: 6,
-          fontFamily: FONT_DISPLAY, fontWeight: 300, fontSize: 18, lineHeight: 1.2,
-          color: 'var(--text-1)', letterSpacing: '-0.005em',
-          display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }}>{offer.title}</div>
-        <div style={{
-          marginTop: 6,
-          fontFamily: FONT_UI, fontWeight: 400, fontSize: 12, lineHeight: 1.5,
-          color: 'var(--text-2)',
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-          overflow: 'hidden', height: 36
-        }}>{offer.desc}</div>
-        <div style={{
-          marginTop: 10,
-          display: 'flex', alignItems: 'center', gap: 8,
-          fontFamily: FONT_UI, fontSize: 11.5
-        }}>
-          <span style={{ color: '#C9942A', fontWeight: 500 }}>+{offer.miles} mi</span>
-          <span style={{ color: 'var(--text-3)' }}>·</span>
-          <span style={{ color: '#E0A946' }}>Expires {offer.expires}</span>
-        </div>
-      </div>
-
-      {/* Redeem CTA */}
-      <div style={{ padding: '16px 20px 20px' }}>
-        <CardCTA offer={offer} height={44} />
-      </div>
-    </div>);
-
-}
 
 // ─────────────────────────────────────────────────────────────
 // Smart Nudge
@@ -1080,7 +985,7 @@ Object.assign(window, {
   MashrabiyaBg, TierPill, Tag, PlaneIcon, LottiePlane,
   ClearbitImg, EmiratesMark, TopBar, NotificationBell, PageHeader, HeroSky, MilesBlock, SectionHeader,
   PartnerLogo, MoreMenu, MoreDots, GoldButton,
-  OfferCard, SmartNudge, BirthdayCard,
+  SmartNudge, BirthdayCard,
   ChallengeIcon, ChallengeCard,
   TabBar, Toast
 });
