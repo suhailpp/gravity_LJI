@@ -3,6 +3,8 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
   const [tab, setTab] = useState(initial?.tab || 'all');
   const [view, setView] = useState('table');
   const [filterOpen, setFilterOpen] = useState(false);
+  const [pageSize, setPageSize] = useState(35);
+  const [currentPage, setCurrentPage] = useState(1);
   // appliedFilters = state that actually filters the table
   // pendingFilters = what user is building inside the panel
   const emptyFilters = () => ({
@@ -76,6 +78,14 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
   const baseRows = applyAll(appliedFilters);
   const rows = tab === 'all' ? [...pendingOffers, ...baseRows] : baseRows;
   const pendingMatchCount = applyAll(pendingFilters).length;
+
+  // Reset to page 1 whenever the visible set or page size changes
+  useEffect(() => { setCurrentPage(1); }, [tab, appliedFilters, pageSize]);
+
+  // Slice rows for the current page
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedRows = rows.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   // Map nodes reflect the current tab's filtered set (same as table rows)
   const graphNodes = rows.map(r => ({
@@ -190,7 +200,7 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
             {graphNodes.length > 0 ? (
               <RelationshipGraph
                 nodes={graphNodes}
-                edges={[]}
+                edges={offerEdgesFromSegments(graphNodes.map(n => n.id))}
                 height={500}
                 onNodeClick={(n)=>openDrawer(n.id)}
                 showLegend={true}
@@ -217,7 +227,7 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
               <span style={{overflow:'visible', textAlign:'center'}}>Health</span>
               <span></span>
             </div>
-            {rows.map(r => {
+            {pagedRows.map(r => {
               const si = statusInfo(r.kind);
               const tl = r.range || {kind:'plain', label:''};
               const tlEl = tl.kind === 'expiring' ? (
@@ -305,7 +315,14 @@ function OfferList({ goTo, openDrawer, initial, pendingOffers = [] }) {
 
       {/* Pagination — shared TablePagination (fixed bottom, conditional controls) */}
       {rows.length > 0 && (
-        <TablePagination total={rows.length} noun={rows.length === 1 ? 'offer' : 'offers'} pageSize={25}/>
+        <TablePagination
+          total={rows.length}
+          noun={rows.length === 1 ? 'offer' : 'offers'}
+          pageSize={pageSize}
+          currentPage={safePage}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
       )}
 
       {/* Filter slide-in panel */}

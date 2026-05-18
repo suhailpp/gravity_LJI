@@ -111,7 +111,7 @@ function App() {
 
       {/* Top bar */}
       <div className="top-bar">
-        <div className="brand-mark">GRAVTY<sup>®</sup></div>
+        <div className="brand-mark" onClick={()=>goTo('dashboard')} style={{cursor:'pointer'}} title="Back to Dashboard">GRAVTY<sup>®</sup></div>
         <div className="brand-sep"/>
         <div className="client-switcher">
           <div className="client-flag"/>
@@ -129,9 +129,6 @@ function App() {
         </div>
 
         <div className="top-actions" style={{marginLeft:'auto'}}>
-          <button className="icon-btn" onClick={()=>setTheme(theme==='dark'?'light':'dark')} title="Toggle theme">
-            <Icon name={theme==='dark'?'Sun':'Moon'} size={16}/>
-          </button>
           <button className="icon-btn" onClick={()=>{setNotifOpen(!notifOpen); setAiOpen(false);}} title="Notifications">
             <Icon name="Bell" size={16}/>
             {notifCount > 0 && <span className="bell-badge">{notifCount}</span>}
@@ -420,7 +417,12 @@ function FloatingAIWidget({ onOpen }) {
       style={{ left: pos.x, top: pos.y }}
       onMouseDown={onMouseDown}
       title="GRAVTY Intelligence — drag to move">
-      ✦
+      <dotlottie-wc
+        src="Sources/AI.lottie"
+        autoplay
+        loop
+        style={{width:56, height:56, pointerEvents:'none'}}
+      />
     </div>
   );
 }

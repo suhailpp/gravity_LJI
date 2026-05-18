@@ -44,16 +44,17 @@ function Rules() {
         />
 
       <div className="tbl">
-        <div className="tbl-head" style={{gridTemplateColumns:'minmax(200px, 1fr) 80px 160px 130px 90px'}}>
+        <div className="tbl-head" style={{gridTemplateColumns:'minmax(150px, 0.6fr) 80px 160px 130px 1fr 90px'}}>
           <span>Name</span>
           <span>Offers</span>
           <span>Categories</span>
           <span>Last Updated</span>
           <span></span>
+          <span></span>
         </div>
         {rules.map(r => (
           <React.Fragment key={r.id}>
-            <div className="tbl-row" style={{gridTemplateColumns:'minmax(200px, 1fr) 80px 160px 130px 90px', padding:'12px 20px'}}
+            <div className="tbl-row" style={{gridTemplateColumns:'minmax(150px, 0.6fr) 80px 160px 130px 1fr 90px', padding:'12px 20px'}}
                  onClick={()=>setExpanded(expanded===r.id ? null : r.id)}>
               <div className="row gap-10">
                 <div className="logo-bubble sm" style={{background:'rgba(212,168,83,0.12)', color:'var(--accent-gold)', borderColor:'rgba(212,168,83,0.3)'}}>
@@ -66,6 +67,7 @@ function Rules() {
                 {r.cats.map(c => <Pill key={c}>{c}</Pill>)}
               </div>
               <div className="mute" style={{fontSize:13}}>{r.updated}</div>
+              <span/>
               <TableRowActions>
                 <button className="btn icon-only sm ghost" onClick={(e)=>{
                   e.stopPropagation();

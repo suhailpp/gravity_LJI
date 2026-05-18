@@ -43,16 +43,17 @@ function Segments({ goTo, openDrawer }) {
         />
 
       <div className="tbl">
-        <div className="tbl-head" style={{gridTemplateColumns:'minmax(240px, 1.5fr) 110px 100px 130px 90px'}}>
+        <div className="tbl-head" style={{gridTemplateColumns:'minmax(180px, 0.9fr) 110px 100px 130px 1fr 90px'}}>
           <span>Name</span>
           <span>Members</span>
           <span>Used In</span>
           <span>Last Updated</span>
           <span></span>
-        </div>
+          <span></span>
+        </div>{/* spacer then actions */}
         {segs.map(s => (
           <React.Fragment key={s.id}>
-            <div className="tbl-row" style={{gridTemplateColumns:'minmax(240px, 1.5fr) 110px 100px 130px 90px', padding:'12px 20px'}}
+            <div className="tbl-row" style={{gridTemplateColumns:'minmax(180px, 0.9fr) 110px 100px 130px 1fr 90px', padding:'12px 20px'}}
                  onClick={()=>setExpanded(expanded===s.id ? null : s.id)}>
               <div className="row gap-10">
                 <div className="logo-bubble sm" style={{background:'rgba(212,168,83,0.12)', color:'var(--accent-gold)', borderColor:'rgba(212,168,83,0.3)'}}>
@@ -74,6 +75,7 @@ function Segments({ goTo, openDrawer }) {
               <div className="sora" style={{fontSize:15, fontWeight:600}}>{s.members.toLocaleString()}</div>
               <div style={{fontSize:13}}>{s.used} offer{s.used!==1?'s':''}</div>
               <div className="mute" style={{fontSize:13}}>{s.updated}</div>
+              <span/>
               <TableRowActions>
                 <button className="btn icon-only sm ghost" onClick={(e)=>{
                   e.stopPropagation();

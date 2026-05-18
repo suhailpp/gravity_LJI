@@ -32,6 +32,42 @@ const OFFERS_DATA = [
   /* ── Expired / Ended ── */
   { id:11, code:'NO', sponsor:'Noon',            brand:'Noon',            name:'Eid Exclusive Gift Voucher',     desc:'Eid-window gift voucher unlocked after qualifying spend at Noon — single-use, all tiers.',           cat:'E-commerce',    mech:'Voucher',   tiers:['All Tiers'],       region:['All UAE'],           status:'ended',   signal:null,       health:null, delta:0,   target:0,  trend7:[],                     cid:'EMSK_NO_EID_APR24',  range:{kind:'ended', label:'Ended Apr 25'},                       trophy:false },
   { id:12, code:'JS', sponsor:'Jumeirah',        brand:'Jumeirah',        name:'Spring Spa Retreat',             desc:'Discounted Jumeirah spa retreat package — campaign window closed.',                                  cat:'Hotels',        mech:'Flat Off',  tiers:['Gold','Plat'],     region:['Dubai'],             status:'ended',   signal:null,       health:null, delta:0,   target:0,  trend7:[],                     cid:'EMSK_JS_SPA_FEB24',  range:{kind:'ended', label:'Ended Mar 31'},                       trophy:false },
+
+  /* ── Additional Live ── */
+  { id:13, code:'TE', sponsor:'The Entertainer',  brand:'The Entertainer', name:'Buy 1 Get 1 Dining Pass',        desc:'BOGO dining access at 500+ Entertainer partner restaurants across the UAE.',                         cat:'Lifestyle',     mech:'BOGO',      tiers:['Silver','Gold'],   region:['Dubai','Abu Dhabi','Sharjah'], status:'live', signal:'trending', health:78, delta:7,  target:85, trend7:[60,63,67,70,73,76,78], cid:'EMSK_TE_BOGO_MAY24', range:{kind:'range', from:'May 3', to:'Jul 3'},              trophy:false },
+  { id:14, code:'LH', sponsor:'Lulu Hypermarket', brand:'Lulu Hypermarket',name:'5% Cashback on Groceries',       desc:'Five percent Miles-cashback on Lulu grocery purchases above AED 200 — all tiers.',                   cat:'Retail',        mech:'Cashback',  tiers:['All Tiers'],       region:['All UAE'],          status:'live',     signal:'fast',     health:72, delta:6,  target:80, trend7:[55,58,62,65,68,70,72], cid:'EMSK_LH_CASH_MAY24', range:{kind:'range', from:'May 1', to:'Jun 30'},             trophy:false },
+  { id:15, code:'SD', sponsor:'Sharaf DG',        brand:'Sharaf DG',       name:'2× Miles on Electronics',        desc:'Double Skywards Miles on Sharaf DG electronics over AED 500 — Silver and above.',                    cat:'Electronics',   mech:'Points ×N', tiers:['Silver','Gold','Plat'], region:['Dubai','Abu Dhabi'], status:'live', signal:'elite',   health:84, delta:4,  target:88, trend7:[76,78,79,80,82,83,84], cid:'EMSK_SD_2X_MAY24',   range:{kind:'range', from:'May 8', to:'Jul 8'},             trophy:false },
+  { id:16, code:'ET', sponsor:'Etihad',           brand:'Etihad',          name:'30% Off Codeshare Flights',      desc:'Thirty percent off Etihad codeshare flights from AUH and DXB for Platinum members.',                 cat:'Travel',        mech:'Flat Off',  tiers:['Platinum'],        region:['DXB','AUH'],        status:'live',     signal:'trending', health:91, delta:11, target:92, trend7:[80,82,85,87,88,90,91], cid:'EMSK_ET_FLT_MAY24',  range:{kind:'range', from:'May 1', to:'Jul 31'},             trophy:true  },
+  { id:17, code:'DU', sponsor:'Du',               brand:'Du',              name:'AED 50 Off Postpaid Bill',       desc:'AED 50 off any Du postpaid bill for Skywards members on auto-pay.',                                  cat:'Telecom',       mech:'Flat Off',  tiers:['Blue','Silver','Gold'], region:['All UAE'],      status:'live',     signal:null,       health:68, delta:3,  target:75, trend7:[62,63,65,66,67,67,68], cid:'EMSK_DU_BILL_MAY24', range:{kind:'range', from:'May 5', to:'Jun 30'},             trophy:false },
+  { id:18, code:'ES', sponsor:'Etisalat',         brand:'Etisalat',        name:'3× Miles on Data Top-up',        desc:'Triple Miles when topping up Etisalat data bundles — short-window flash promo.',                     cat:'Telecom',       mech:'Flash',     tiers:['All Tiers'],       region:['All UAE'],          status:'live',     signal:'fast',     health:77, delta:9,  target:82, trend7:[65,67,70,72,74,76,77], cid:'EMSK_ES_FLASH_MAY24',range:{kind:'expiring', label:'6 days left'},               trophy:false },
+  { id:19, code:'VC', sponsor:'VOX Cinemas',      brand:'VOX Cinemas',     name:'Free Popcorn with Ticket',       desc:'Complimentary regular popcorn with any VOX ticket booked using Miles — all tiers.',                  cat:'Entertainment', mech:'Voucher',   tiers:['All Tiers'],       region:['Dubai','Abu Dhabi','Sharjah'], status:'live', signal:null,        health:65, delta:2,  target:75, trend7:[60,61,62,63,64,64,65], cid:'EMSK_VC_POP_MAY24',  range:{kind:'range', from:'May 6', to:'Jul 6'},              trophy:false },
+  { id:20, code:'IK', sponsor:'IKEA',             brand:'IKEA',            name:'AED 100 Off Furniture',          desc:'AED 100 off IKEA orders above AED 500 — Gold and Platinum members only.',                            cat:'Retail',        mech:'Flat Off',  tiers:['Gold','Plat'],     region:['Dubai','Abu Dhabi'], status:'live',    signal:'elite',    health:82, delta:6,  target:86, trend7:[72,74,76,78,80,81,82], cid:'EMSK_IK_FURN_MAY24', range:{kind:'range', from:'May 2', to:'Jun 15'},             trophy:false },
+  { id:21, code:'FA', sponsor:'Faces',            brand:'Faces',           name:'15% Off Beauty Splurge',         desc:'Fifteen percent off Faces beauty range across all Chalhoub locations.',                              cat:'Beauty',        mech:'Flat Off',  tiers:['Silver','Gold'],   region:['Dubai'],            status:'live',     signal:'losing',   health:48, delta:-9, target:70, trend7:[60,58,55,53,50,49,48], cid:'EMSK_FA_BEAU_MAY24', range:{kind:'range', from:'May 4', to:'Jul 4'},              trophy:false },
+  { id:22, code:'CP', sponsor:'Centrepoint',      brand:'Centrepoint',     name:'Family Wardrobe Bundle',         desc:'Bundle savings on Centrepoint family wardrobe purchases — all tiers, UAE-wide.',                     cat:'Retail',        mech:'Flat Off',  tiers:['All Tiers'],       region:['All UAE'],          status:'live',     signal:null,       health:70, delta:4,  target:78, trend7:[64,65,67,68,69,70,70], cid:'EMSK_CP_BUND_MAY24', range:{kind:'range', from:'May 10', to:'Jul 31'},            trophy:false },
+  { id:23, code:'AT', sponsor:'Atlantis',         brand:'Atlantis',        name:'Stay 3 Pay 2 Suites',            desc:'Three-night stays at the price of two at Atlantis The Palm — Platinum exclusive.',                   cat:'Hotels',        mech:'BOGO',      tiers:['Platinum'],        region:['Dubai'],            status:'live',     signal:'elite',    health:88, delta:5,  target:90, trend7:[80,82,83,85,86,87,88], cid:'EMSK_AT_SUITE_MAY24',range:{kind:'range', from:'May 1', to:'Aug 31'},             trophy:true  },
+  { id:24, code:'AN', sponsor:'Anantara',         brand:'Anantara',        name:'Spa Credit AED 200',             desc:'AED 200 spa credit on Anantara stays of 2+ nights — Gold members.',                                  cat:'Hotels',        mech:'Voucher',   tiers:['Gold'],            region:['Abu Dhabi'],        status:'live',     signal:'trending', health:75, delta:8,  target:82, trend7:[63,66,69,71,73,74,75], cid:'EMSK_AN_SPA_MAY24',  range:{kind:'range', from:'May 12', to:'Jul 12'},            trophy:false },
+  { id:25, code:'PH', sponsor:'Park Hyatt',       brand:'Park Hyatt',      name:'Breakfast on Us',                desc:'Complimentary breakfast for two on Park Hyatt stays — Silver and above.',                            cat:'Hotels',        mech:'Voucher',   tiers:['Silver','Gold','Plat'], region:['Dubai'],       status:'live',     signal:null,       health:73, delta:5,  target:80, trend7:[65,67,68,70,71,72,73], cid:'EMSK_PH_BFAST_MAY24',range:{kind:'range', from:'May 7', to:'Jun 30'},             trophy:false },
+  { id:26, code:'FW', sponsor:'Ferrari World',    brand:'Ferrari World',   name:'2-for-1 Day Pass',               desc:'Two day passes for the price of one at Ferrari World Yas Island.',                                   cat:'Entertainment', mech:'BOGO',      tiers:['Silver','Gold'],   region:['AUH'],              status:'live',     signal:'fast',     health:79, delta:10, target:85, trend7:[64,67,70,73,75,77,79], cid:'EMSK_FW_BOGO_MAY24', range:{kind:'range', from:'May 5', to:'Jun 30'},             trophy:false },
+  { id:27, code:'YW', sponsor:'Yas Waterworld',   brand:'Yas Waterworld',  name:'Family Splash Pack',             desc:'Discounted family entry pack for Yas Waterworld — Blue and Silver members.',                         cat:'Entertainment', mech:'Flat Off',  tiers:['Blue','Silver'],   region:['AUH'],              status:'live',     signal:null,       health:67, delta:3,  target:75, trend7:[60,62,63,64,65,66,67], cid:'EMSK_YW_FAM_MAY24',  range:{kind:'range', from:'May 8', to:'Jul 8'},              trophy:false },
+  { id:28, code:'CC', sponsor:'Costa Coffee',     brand:'Costa Coffee',    name:'Buy 2 Coffees Get 1 Free',       desc:'Buy two Costa coffees and get a third free — daily redemption cap of one per member.',               cat:'Food',          mech:'BOGO',      tiers:['All Tiers'],       region:['All UAE'],          status:'live',     signal:'trending', health:80, delta:11, target:85, trend7:[65,68,71,74,76,78,80], cid:'EMSK_CC_COF_MAY24',  range:{kind:'range', from:'May 2', to:'Jul 2'},              trophy:false },
+  { id:29, code:'SB', sponsor:'Starbucks',        brand:'Starbucks',       name:'Double Star Wednesdays',         desc:'Double Skywards Miles on Starbucks orders every Wednesday — Gold and above.',                        cat:'Food',          mech:'Points ×N', tiers:['Gold','Plat'],     region:['Dubai','Abu Dhabi'], status:'live',    signal:null,       health:71, delta:4,  target:78, trend7:[64,65,67,68,69,70,71], cid:'EMSK_SB_2X_MAY24',   range:{kind:'range', from:'May 6', to:'Aug 6'},              trophy:false },
+  { id:30, code:'MC', sponsor:'McDonald\'s',      brand:'McDonalds',       name:'Free Upsize on Meals',           desc:'Free meal upsize on McDonald\'s combos paid with Miles — all tiers.',                                 cat:'Food',          mech:'Voucher',   tiers:['All Tiers'],       region:['All UAE'],          status:'live',     signal:'expiring', health:62, delta:1,  target:70, trend7:[58,59,60,60,61,61,62], cid:'EMSK_MC_UP_MAY24',   range:{kind:'expiring', label:'5 days left'},                trophy:false },
+  { id:31, code:'NK', sponsor:'Nike',             brand:'Nike',            name:'20% Off Running Gear',           desc:'Twenty percent off Nike running apparel and footwear for Silver and Gold members.',                  cat:'Sports',        mech:'Flat Off',  tiers:['Silver','Gold'],   region:['Dubai','Abu Dhabi'], status:'live',    signal:'fast',     health:83, delta:9,  target:88, trend7:[70,73,76,78,80,82,83], cid:'EMSK_NK_RUN_MAY24',  range:{kind:'range', from:'May 9', to:'Jul 9'},              trophy:false },
+
+  /* ── Additional Scheduled ── */
+  { id:32, code:'AD', sponsor:'Adidas',           brand:'Adidas',          name:'Member-Only Sneaker Drop',       desc:'Early access sneaker drop for Skywards members ahead of public release.',                            cat:'Sports',        mech:'Flash',     tiers:['Platinum'],        region:['Dubai'],             status:'scheduled', signal:null,      health:null, delta:0, target:0, trend7:[],                     cid:'EMSK_AD_DROP_JUN24', range:{kind:'starts', label:'Starts Jun 5'},                 trophy:false },
+  { id:33, code:'GG', sponsor:'Gold\'s Gym',      brand:'Gold\'s Gym',     name:'3-Month Membership Voucher',     desc:'Discounted 3-month Gold\'s Gym membership voucher — Gold tier exclusive.',                            cat:'Fitness',       mech:'Voucher',   tiers:['Gold'],            region:['Dubai','Sharjah'],   status:'scheduled', signal:null,      health:null, delta:0, target:0, trend7:[],                     cid:'EMSK_GG_GYM_JUN24',  range:{kind:'starts', label:'Starts Jun 10'},                trophy:false },
+  { id:34, code:'HM', sponsor:'H&M',              brand:'H&M',             name:'Summer Collection Preview',      desc:'Member preview of H&M\'s summer collection with 15% off first purchase.',                             cat:'Fashion',       mech:'Flat Off',  tiers:['Silver','Gold'],   region:['All UAE'],           status:'scheduled', signal:null,      health:null, delta:0, target:0, trend7:[],                     cid:'EMSK_HM_SUM_JUN24',  range:{kind:'starts', label:'Starts Jun 15'},                trophy:false },
+
+  /* ── Additional Review ── */
+  { id:35, code:'SP', sponsor:'Splash',           brand:'Splash',          name:'Back-to-School Bundle',          desc:'Back-to-school apparel bundle savings for families — pending legal sign-off.',                        cat:'Fashion',       mech:'Flat Off',  tiers:['All Tiers'],       region:['All UAE'],           status:'review',    signal:null,      health:null, delta:0, target:0, trend7:[],                     cid:'EMSK_SP_BTS_JUL24',  range:{kind:'starts', label:'Starts Jul 15'},                trophy:false },
+  { id:36, code:'ME', sponsor:'Mall of Emirates', brand:'Mall of Emirates',name:'Weekend Shopper Bonus',          desc:'Weekend bonus Miles for spend above AED 500 across Mall of the Emirates stores.',                    cat:'Retail',        mech:'Points ×N', tiers:['Silver','Gold','Plat'], region:['Dubai'],        status:'review',    signal:null,      health:null, delta:0, target:0, trend7:[],                     cid:'EMSK_ME_WKND_JUL24', range:{kind:'starts', label:'Starts Jul 20'},                trophy:false },
+  { id:37, code:'PZ', sponsor:'Pizza Hut',        brand:'Pizza Hut',       name:'Family Feast Combo',             desc:'Family feast combo at flat price for Skywards members — pricing review in progress.',                cat:'Food',          mech:'Flat Off',  tiers:['All Tiers'],       region:['All UAE'],           status:'review',    signal:null,      health:null, delta:0, target:0, trend7:[],                     cid:'EMSK_PZ_FAM_JUL24',  range:{kind:'starts', label:'Starts Jul 8'},                 trophy:false },
+
+  /* ── Additional Drafts ── */
+  { id:38, code:'KF', sponsor:'KFC',              brand:'KFC',             name:'Weekday Combo Discount',         desc:'Lunchtime weekday combo discount draft — partner terms being negotiated.',                            cat:'Food',          mech:'Flat Off',  tiers:['Blue','Silver'],   region:['All UAE'],           status:'draft',     signal:null,      health:null, delta:0, target:0, trend7:[],                     cid:'DRAFT_KF_WKD',       range:{kind:'draft', label:'Draft'},                         trophy:false },
+  { id:39, code:'DM', sponsor:'DAMAC',            brand:'DAMAC',           name:'Property Viewing Bonus',         desc:'Bonus Miles for property viewing visits at DAMAC developments — concept stage.',                     cat:'Real Estate',   mech:'Points ×N', tiers:['Platinum'],        region:['Dubai'],             status:'draft',     signal:null,      health:null, delta:0, target:0, trend7:[],                     cid:'DRAFT_DM_VIEW',      range:{kind:'draft', label:'Draft'},                         trophy:false },
+  { id:40, code:'SQ', sponsor:'Souq',             brand:'Souq',            name:'Free Shipping Weekend',          desc:'Free shipping weekend across Souq partner stores — awaiting logistics sign-off.',                     cat:'E-commerce',    mech:'Voucher',   tiers:['All Tiers'],       region:['All UAE'],           status:'draft',     signal:null,      health:null, delta:0, target:0, trend7:[],                     cid:'DRAFT_SQ_SHIP',      range:{kind:'draft', label:'Draft'},                         trophy:false },
 ];
 
 /* Helpers — every consumer should derive counts via these, never hardcode. */
@@ -55,6 +91,48 @@ window.OFFERS_DATA   = OFFERS_DATA;
 window.offersByStatus = offersByStatus;
 window.offerById      = offerById;
 window.offerCounts    = offerCounts;
+
+/* ──────────────────────────────────────────────────────────────────────
+   SEGMENT MEMBERSHIP — single source of truth for which offers belong to
+   which segment. Drives the Segments screen AND the relationship-map edges
+   (any two offers sharing a segment get a labeled edge between them in
+   the map view). Edit here once; both screens stay in sync.
+   ────────────────────────────────────────────────────────────────────── */
+const SEGMENTS_META = [
+  { id:1, name:'High-Value UAE Travelers', offerIds:[1, 4, 6, 15, 16, 20, 23, 24, 25, 29] },
+  { id:2, name:'Lapsed Gold Members',      offerIds:[3, 4, 21, 31] },
+  { id:3, name:'Ramadan Active Members',   offerIds:[3, 5, 13, 16, 26, 28, 30] },
+  { id:4, name:'Platinum Frequent Flyers', offerIds:[1, 6, 16, 23, 39] },
+  { id:5, name:'First-Time Members',       offerIds:[2, 14, 19, 22, 27, 31] },
+  { id:6, name:'Staff & Corporate',        offerIds:[6, 16, 17, 18] },
+];
+
+/* Build pairwise edges between offers that share a segment, restricted to
+   the set of visible node ids. Each edge is tagged with the segment name
+   so the graph can render it as a labeled relationship. Multi-segment
+   pairs get one edge per shared segment so labels stay accurate. */
+const offerEdgesFromSegments = (visibleIds) => {
+  const visible = new Set(visibleIds);
+  const out = [];
+  const seen = new Set(); // de-dupe identical (a,b,group) edges
+  SEGMENTS_META.forEach(seg => {
+    const ids = seg.offerIds.filter(id => visible.has(id));
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const a = Math.min(ids[i], ids[j]);
+        const b = Math.max(ids[i], ids[j]);
+        const key = `${a}-${b}-${seg.id}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push({ a, b, group: seg.name });
+      }
+    }
+  });
+  return out;
+};
+
+window.SEGMENTS_META           = SEGMENTS_META;
+window.offerEdgesFromSegments  = offerEdgesFromSegments;
 
 // ─── Design Tokens ─────────────────────────
 const COLORS = {
@@ -176,6 +254,7 @@ const Toggle = ({ on, onToggle, label }) =>
 
 // ─── Brand to logo URL map ────────────────
 const BRAND_LOGOS = {
+  // Original 12
   'Marriott Bonvoy':  'https://www.google.com/s2/favicons?sz=128&domain=marriott.com',
   'Marriott':         'https://www.google.com/s2/favicons?sz=128&domain=marriott.com',
   'Careem':           'https://www.google.com/s2/favicons?sz=128&domain=careem.com',
@@ -184,10 +263,51 @@ const BRAND_LOGOS = {
   'BookMyShow':       'https://www.google.com/s2/favicons?sz=128&domain=bookmyshow.com',
   'Emirates':         'https://www.google.com/s2/favicons?sz=128&domain=emirates.com',
   'Chalhoub':         'https://www.google.com/s2/favicons?sz=128&domain=chalhoubgroup.com',
+  'Talabat':          'https://www.google.com/s2/favicons?sz=128&domain=talabat.com',
+  'Almosafer':        'https://www.google.com/s2/favicons?sz=128&domain=almosafer.com',
+  'Carrefour':        'https://www.google.com/s2/favicons?sz=128&domain=carrefouruae.com',
+  'Jumeirah':         'https://www.google.com/s2/favicons?sz=128&domain=jumeirah.com',
+  // Added (ids 13–40)
+  'The Entertainer':  'https://www.google.com/s2/favicons?sz=128&domain=theentertainerme.com',
+  'Lulu Hypermarket': 'https://www.google.com/s2/favicons?sz=128&domain=luluhypermarket.com',
+  'Sharaf DG':        'https://www.google.com/s2/favicons?sz=128&domain=sharafdg.com',
+  'Etihad':           'https://www.google.com/s2/favicons?sz=128&domain=etihad.com',
+  'Du':               'https://www.google.com/s2/favicons?sz=128&domain=du.ae',
+  'Etisalat':         'https://www.google.com/s2/favicons?sz=128&domain=etisalat.ae',
+  'VOX Cinemas':      'https://www.google.com/s2/favicons?sz=128&domain=voxcinemas.com',
+  'IKEA':             'https://www.google.com/s2/favicons?sz=128&domain=ikea.com',
+  'Faces':            'https://www.google.com/s2/favicons?sz=128&domain=faces.com',
+  'Centrepoint':      'https://www.google.com/s2/favicons?sz=128&domain=centrepointstores.com',
+  'Atlantis':         'https://www.google.com/s2/favicons?sz=128&domain=atlantis.com',
+  'Anantara':         'https://www.google.com/s2/favicons?sz=128&domain=anantara.com',
+  'Park Hyatt':       'https://www.google.com/s2/favicons?sz=128&domain=hyatt.com',
+  'Ferrari World':    'https://www.google.com/s2/favicons?sz=128&domain=ferrariworldabudhabi.com',
+  'Yas Waterworld':   'https://www.google.com/s2/favicons?sz=128&domain=yaswaterworld.com',
+  'Costa Coffee':     'https://www.google.com/s2/favicons?sz=128&domain=costacoffee.com',
+  'Starbucks':        'https://www.google.com/s2/favicons?sz=128&domain=starbucks.com',
+  'McDonalds':        'https://www.google.com/s2/favicons?sz=128&domain=mcdonalds.com',
+  'Nike':             'https://www.google.com/s2/favicons?sz=128&domain=nike.com',
+  'Adidas':           'https://www.google.com/s2/favicons?sz=128&domain=adidas.com',
+  "Gold's Gym":       'https://www.google.com/s2/favicons?sz=128&domain=goldsgym.com',
+  'H&M':              'https://www.google.com/s2/favicons?sz=128&domain=hm.com',
+  'Splash':           'https://www.google.com/s2/favicons?sz=128&domain=splashfashions.com',
+  'Mall of Emirates': 'https://www.google.com/s2/favicons?sz=128&domain=malloftheemirates.com',
+  'Pizza Hut':        'https://www.google.com/s2/favicons?sz=128&domain=pizzahut.com',
+  'KFC':              'https://www.google.com/s2/favicons?sz=128&domain=kfc.com',
+  'DAMAC':            'https://www.google.com/s2/favicons?sz=128&domain=damacproperties.com',
+  'Souq':             'https://www.google.com/s2/favicons?sz=128&domain=amazon.ae',
 };
 const CODE_TO_BRAND = {
   MA:'Marriott Bonvoy', CA:'Careem', NO:'Noon', CF:'Cult.fit',
-  BM:'BookMyShow', EM:'Emirates', CH:'Chalhoub'
+  BM:'BookMyShow', EM:'Emirates', CH:'Chalhoub',
+  TH:'Talabat', AS:'Almosafer', CR:'Carrefour', JS:'Jumeirah',
+  TE:'The Entertainer', LH:'Lulu Hypermarket', SD:'Sharaf DG', ET:'Etihad',
+  DU:'Du', ES:'Etisalat', VC:'VOX Cinemas', IK:'IKEA', FA:'Faces',
+  CP:'Centrepoint', AT:'Atlantis', AN:'Anantara', PH:'Park Hyatt',
+  FW:'Ferrari World', YW:'Yas Waterworld', CC:'Costa Coffee', SB:'Starbucks',
+  MC:'McDonalds', NK:'Nike', AD:'Adidas', GG:"Gold's Gym",
+  HM:'H&M', SP:'Splash', ME:'Mall of Emirates', PZ:'Pizza Hut',
+  KF:'KFC', DM:'DAMAC', SQ:'Souq',
 };
 const CODE_TO_SIGNAL = {
   MA:'trending', CA:'fast', NO:'losing', CF:'elite',
@@ -230,9 +350,9 @@ const getHealthColor = (value) => {
 // centered Sora numeric. Colors come from getHealthColor (75/50 splits).
 // Optional `delta` renders a tiny arrow + number below the donut.
 const HEALTH_DIMS = {
-  sm: { D: 40, R: 15, SW: 4, fz: 14 },
-  md: { D: 60, R: 24, SW: 6, fz: 20 },
-  lg: { D: 80, R: 32, SW: 8, fz: 26 },
+  sm: { D: 40, R: 16, SW: 2.5, fz: 14 },
+  md: { D: 60, R: 25, SW: 3.5, fz: 20 },
+  lg: { D: 80, R: 34, SW: 4.5, fz: 26 },
 };
 const HealthDonut = ({ score, value, delta = null, size = 'md' }) => {
   // accept `score` (new canonical) and `value` (back-compat alias)
@@ -260,7 +380,7 @@ const HealthDonut = ({ score, value, delta = null, size = 'md' }) => {
   const donut = (
     <div style={{position:'relative', width:D, height:D, flexShrink:0}}>
       <svg width={D} height={D} viewBox={`0 0 ${D} ${D}`} style={{transform:'rotate(-90deg)'}}>
-        <circle cx={D/2} cy={D/2} r={R} fill="none" stroke="#1a1d24" strokeWidth={SW}/>
+        <circle cx={D/2} cy={D/2} r={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={SW}/>
         <circle cx={D/2} cy={D/2} r={R} fill="none" stroke={stroke} strokeWidth={SW}
                 strokeLinecap="round"
                 strokeDasharray={circ}
@@ -268,7 +388,7 @@ const HealthDonut = ({ score, value, delta = null, size = 'md' }) => {
                 style={{transition:'stroke-dashoffset .6s cubic-bezier(0,0,0.2,1), stroke .3s ease'}}/>
       </svg>
       <div style={{position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center',
-                   fontFamily:'Sora, sans-serif', fontWeight:700, fontSize:fz, color:stroke, lineHeight:1,
+                   fontFamily:'Sora, sans-serif', fontWeight:700, fontSize:fz, color:'#ffffff', lineHeight:1,
                    fontVariantNumeric:'tabular-nums'}}>
         {v}
       </div>
@@ -352,39 +472,110 @@ function TableRowActions({ children, style }) {
 //   <TablePagination total={n} noun="segments" />
 //   <TablePagination total={n} noun="offers" pageSize={25}
 //                    currentPage={p} onPageChange={setPage} />
-function TablePagination({ total, noun = 'items', pageSize = 25, currentPage = 1, onPageChange }) {
-  const showPagination = total > pageSize;
-  const start = (currentPage - 1) * pageSize + 1;
-  const end = Math.min(currentPage * pageSize, total);
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+function TablePagination({
+  total,
+  noun = 'items',
+  pageSize = 25,
+  currentPage = 1,
+  onPageChange,
+  onPageSizeChange,
+  pageSizeOptions = [10, 25, 35, 50, 100],
+}) {
+  const [sizeOpen, setSizeOpen] = useState(false);
+  const sizeRef = useRef(null);
+  useEffect(() => {
+    if (!sizeOpen) return;
+    const onDoc = (e) => { if (sizeRef.current && !sizeRef.current.contains(e.target)) setSizeOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [sizeOpen]);
 
-  if (!showPagination) {
+  const safeSize = Math.max(1, pageSize);
+  const totalPages = Math.max(1, Math.ceil(total / safeSize));
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+  const start = total === 0 ? 0 : (safePage - 1) * safeSize + 1;
+  const end = Math.min(safePage * safeSize, total);
+
+  const go = (p) => onPageChange && onPageChange(Math.min(Math.max(1, p), totalPages));
+  const pickSize = (s) => { setSizeOpen(false); onPageSizeChange && onPageSizeChange(s); };
+
+  // Page-size selector (always rendered — even when there's only one page, so the user can change it)
+  const sizeSelector = (
+    <div ref={sizeRef} style={{position:'relative'}}>
+      <span
+        style={{cursor: onPageSizeChange ? 'pointer' : 'default', userSelect:'none'}}
+        onClick={() => onPageSizeChange && setSizeOpen(o => !o)}
+      >
+        {pageSize} per page {onPageSizeChange ? '▾' : ''}
+      </span>
+      {sizeOpen && (
+        <div style={{
+          position:'absolute', bottom:'calc(100% + 6px)', left:0,
+          background:'var(--bg-surface)', border:'1px solid var(--border-default)', borderRadius:8,
+          boxShadow:'0 8px 20px rgba(0,0,0,0.4)', padding:4, minWidth:120, zIndex:60,
+        }}>
+          {pageSizeOptions.map(opt => (
+            <div key={opt}
+                 onClick={() => pickSize(opt)}
+                 style={{
+                   padding:'6px 10px', fontSize:12, borderRadius:6, cursor:'pointer',
+                   color: opt === pageSize ? 'var(--accent-gold)' : 'var(--text-secondary)',
+                   background: opt === pageSize ? 'rgba(212,175,55,0.08)' : 'transparent',
+                 }}
+                 onMouseEnter={(e)=>{ if (opt !== pageSize) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                 onMouseLeave={(e)=>{ if (opt !== pageSize) e.currentTarget.style.background = 'transparent'; }}>
+              {opt} per page
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // Single page → no prev/next/numbers, just the size selector + count
+  if (total <= safeSize) {
     return (
       <div className="tbl-pagination">
-        <span>Showing {total} of {total} {noun}</span>
+        <div className="row gap-12">
+          {sizeSelector}
+          <span>Showing {total} of {total} {noun}</span>
+        </div>
         <span/>
       </div>
     );
   }
 
-  const go = (p) => onPageChange && onPageChange(Math.min(Math.max(1, p), totalPages));
+  // Multi-page → compact page list with ellipsis when needed
+  const pageNums = (() => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const set = new Set([1, totalPages, safePage, safePage - 1, safePage + 1]);
+    const list = [...set].filter(p => p >= 1 && p <= totalPages).sort((a,b) => a - b);
+    const out = [];
+    list.forEach((p, i) => {
+      if (i > 0 && p - list[i-1] > 1) out.push('…');
+      out.push(p);
+    });
+    return out;
+  })();
 
   return (
     <div className="tbl-pagination">
       <div className="row gap-12">
-        <span style={{cursor:'pointer'}}>{pageSize} per page ▾</span>
+        {sizeSelector}
         <span>Showing {start}–{end} of {total} {noun}</span>
       </div>
       <div className="row gap-6">
-        <span style={{display:'inline-flex', alignItems:'center', gap:4, cursor: currentPage === 1 ? 'default' : 'pointer', opacity: currentPage === 1 ? 0.4 : 1}}
-              onClick={() => go(currentPage - 1)}><Icon name="ChevronLeft" size={14}/>Prev</span>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-          p === currentPage
-            ? <Pill key={p} kind="solid-gold">{p}</Pill>
-            : <span key={p} style={{padding:'4px 10px', cursor:'pointer'}} onClick={() => go(p)}>{p}</span>
+        <span style={{display:'inline-flex', alignItems:'center', gap:4, cursor: safePage === 1 ? 'default' : 'pointer', opacity: safePage === 1 ? 0.4 : 1}}
+              onClick={() => go(safePage - 1)}><Icon name="ChevronLeft" size={14}/>Prev</span>
+        {pageNums.map((p, i) => (
+          p === '…'
+            ? <span key={`e${i}`} style={{padding:'4px 6px', color:'var(--text-muted)'}}>…</span>
+            : p === safePage
+              ? <Pill key={p} kind="solid-gold">{p}</Pill>
+              : <span key={p} style={{padding:'4px 10px', cursor:'pointer'}} onClick={() => go(p)}>{p}</span>
         ))}
-        <span style={{display:'inline-flex', alignItems:'center', gap:4, cursor: currentPage === totalPages ? 'default' : 'pointer', opacity: currentPage === totalPages ? 0.4 : 1}}
-              onClick={() => go(currentPage + 1)}>Next<Icon name="ChevronRight" size={14}/></span>
+        <span style={{display:'inline-flex', alignItems:'center', gap:4, cursor: safePage === totalPages ? 'default' : 'pointer', opacity: safePage === totalPages ? 0.4 : 1}}
+              onClick={() => go(safePage + 1)}>Next<Icon name="ChevronRight" size={14}/></span>
       </div>
     </div>
   );
@@ -425,13 +616,13 @@ function OfferCard({ c, onClick }) {
 
       {/* CENTER — text stack */}
       <div style={{flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:8, paddingRight:88}}>
-        {/* brand + status dot */}
-        <div style={{display:'flex', alignItems:'center', gap:8, minWidth:0}}>
-          <span style={{font:'400 13px/1 Inter, sans-serif', color:'var(--text-muted)',
-                        whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
+        {/* brand + status dot + inline signal chip (wraps to next line if name is long) */}
+        <div style={{display:'flex', alignItems:'center', gap:8, minWidth:0, flexWrap:'wrap', rowGap:6}}>
+          <span style={{font:'400 13px/1 Inter, sans-serif', color:'var(--text-muted)'}}>
             {c.brand}
           </span>
           <span style={{width:7, height:7, borderRadius:'50%', background:'#59d499', flexShrink:0}}/>
+          {c.sig && <SignalBadge signal={c.sig}/>}
         </div>
 
         {/* title 16px bold */}
@@ -475,7 +666,7 @@ function OfferCard({ c, onClick }) {
           <span style={{display:'inline-flex', alignItems:'center', gap:3,
                         font:'500 11px/1 Inter, sans-serif', color:scoreColor}}>
             <Icon name={c.delta > 0 ? 'ArrowUp' : 'ArrowDown'} size={10}/>
-            {Math.abs(c.delta)} vs yesterday
+            {Math.abs(c.delta)}
           </span>
         )}
       </div>

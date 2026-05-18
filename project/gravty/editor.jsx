@@ -125,49 +125,84 @@ function Editor({ goTo, initial }) {
   return (
     <PageLayout>
       <div className="col gap-20">
-        <PageHeader
-          title={fromTemplate ? 'Tier Recovery Offer' : 'New Offer'}
-          subtitle={fromTemplate ? 'Template pre-filled · Marriott Bonvoy · Gold tier re-engagement' : 'Build a new offer from scratch'}
-          backLabel="Back to Offers"
-          onBack={()=>goTo('offers')}
-          actions={<span className="mute" style={{fontSize:12}}><Icon name="Check" size={12} color="var(--accent-green)"/> Saved just now</span>}
-        />
-
-      {/* Step indicator */}
-      <div>
-        <div className="steps">
-          {stepDefs.map(s => (
-            <div key={s.n} className={"step " + (step===s.n?'active':'')} onClick={()=>setStep(s.n)}>
-              <div className="sn">
-                {!unsavedSteps[s.n] && s.n < step
-                  ? <span style={{color:'var(--accent-green)', marginRight:4, display:'inline-flex'}}><Icon name="Check" size={12}/></span>
-                  : <span>Step {s.n}</span>
-                }
-                {unsavedSteps[s.n] && <span className="unsaved-dot" title="Unsaved or incomplete"/>}
-              </div>
-              <div className="snme">{s.name}</div>
-              <div className="sfrac">{s.frac} complete</div>
-            </div>
-          ))}
+        {/* Title band — same dark fill + side-bleed as the sticky stepper, raised above the
+            grain-overlay (z-index 5 > grain's 0) so it reads as the same clean dark surface. */}
+        <div style={{
+          backgroundColor:'var(--bg-base)', position:'relative', zIndex:5,
+          marginLeft:-40, marginRight:-40, marginTop:-32,
+          paddingLeft:40, paddingRight:40, paddingTop:32, paddingBottom:0,
+        }}>
+          <PageHeader
+            title={fromTemplate ? 'Tier Recovery Offer' : 'New Offer'}
+            subtitle={fromTemplate ? 'Template pre-filled · Marriott Bonvoy · Gold tier re-engagement' : 'Build a new offer from scratch'}
+            backLabel="Back to Offers"
+            onBack={()=>goTo('offers')}
+            actions={<span className="mute" style={{fontSize:12}}><Icon name="Check" size={12} color="var(--accent-green)"/> Saved just now</span>}
+          />
         </div>
-      </div>
+
+        {/* Sticky stepper — title scrolls off above; this band pins under the app bar.
+            Side bleed (-40 margins + matching padding) so the band spans the full page width
+            and table rows below can't show through the bottom edge of the band.
+            Background matches the page's --bg-base so the header and stepper read as one continuous dark surface. */}
+        <div style={{position:'sticky', top:84, zIndex:20, backgroundColor:'var(--bg-base)',
+                     marginLeft:-40, marginRight:-40, paddingLeft:40, paddingRight:40,
+                     paddingTop:12, paddingBottom:12}}>
+          <div className="steps">
+            {stepDefs.map(s => {
+              // Tick only when the step's frac is fully done (e.g. "9/9", "6/6"). Position
+              // past the current step alone is NOT enough — the user wants partial progress
+              // ("7/9") to keep showing "Step N" until every field is filled.
+              const m = String(s.frac).match(/^(\d+)\/(\d+)$/);
+              const isFullyComplete = !!m && m[1] === m[2];
+              return (
+                <div key={s.n} className={"step " + (step===s.n?'active':'')} onClick={()=>setStep(s.n)}>
+                  <div className="sn">
+                    {isFullyComplete
+                      ? <span style={{color:'var(--accent-green)', marginRight:4, display:'inline-flex'}}><Icon name="Check" size={12}/></span>
+                      : <span>Step {s.n}</span>
+                    }
+                    {unsavedSteps[s.n] && <span className="unsaved-dot" title="Unsaved or incomplete"/>}
+                  </div>
+                  <div className="snme">{s.name}</div>
+                  <div className="sfrac">{s.frac} complete</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
       {/* Two-panel grid — when collapsed, right column shrinks to fit just the Estimate (step 2) or disappears */}
       <div className="editor-grid" style={{gridTemplateColumns: collapsed ? (step === 2 ? '1fr 320px' : '1fr') : undefined}}>
         <div className="card" style={{padding:24, position:'relative'}}>
-          {/* Floating collapse/expand toggle — sits on the boundary between config and preview (or right edge when collapsed) */}
+          {/* Floating collapse/expand toggle — tall pill on the boundary between config and preview.
+              Vertical "COLLAPSE" / "EXPAND" label uses writing-mode so the text flows top→bottom
+              alongside the chevron, matching the side-rail style commonly seen in editor panels. */}
           <button
             onClick={()=>setCollapsed(!collapsed)}
             title={collapsed ? 'Show preview' : 'Hide preview'}
             style={{
-              position:'absolute', right:-16, top:'50%', transform:'translateY(-50%)',
-              zIndex:10, width:32, height:32, borderRadius:'50%',
+              position:'absolute', right:-18, top:24,
+              zIndex:10, width:28, height:108, borderRadius:14,
               background:'var(--bg-elevated)', border:'1px solid var(--border-default)',
-              cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-              color:'var(--text-secondary)', fontSize:14, fontFamily:'Sora, sans-serif',
-              padding:0
+              cursor:'pointer',
+              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:6,
+              color:'var(--text-secondary)', padding:'10px 0',
+              boxShadow:'0 2px 6px rgba(0,0,0,0.25)',
+              transition:'color 150ms ease, border-color 150ms ease',
+            }}
+            onMouseEnter={(e)=>{ e.currentTarget.style.color='var(--text-primary)'; e.currentTarget.style.borderColor='var(--accent-gold)'; }}
+            onMouseLeave={(e)=>{ e.currentTarget.style.color='var(--text-secondary)'; e.currentTarget.style.borderColor='var(--border-default)'; }}
+          >
+            <Icon name={collapsed ? 'ChevronLeft' : 'ChevronRight'} size={13}/>
+            <span style={{
+              writingMode:'vertical-rl', transform:'rotate(180deg)',
+              font:'500 9.5px/1 "Manrope", sans-serif',
+              letterSpacing:'0.16em', textTransform:'uppercase',
+              color:'inherit', userSelect:'none',
             }}>
-            <Icon name={collapsed ? 'ChevronLeft' : 'ChevronRight'} size={14}/>
+              {collapsed ? 'Collapse' : 'Expand'}
+            </span>
           </button>
           {fromTemplate && !templateBannerDismissed && (
             <div className="tpl-banner">
@@ -236,7 +271,16 @@ function Editor({ goTo, initial }) {
         </div>
 
         {(!collapsed || step === 2) && (
-          <div className="preview-wrap" style={collapsed ? {opacity:1, pointerEvents:'auto', width:'auto'} : undefined}>
+          <div className="preview-wrap" style={{
+            position:'sticky',
+            // App bar (84) + sticky stepper band (~130) + 26px gap. Keeps the preview pinned
+            // in view while the form on the left scrolls — and never tucks under the stepper.
+            top: 240,
+            alignSelf:'flex-start',
+            maxHeight:'calc(100vh - 256px)',
+            overflowY:'auto',
+            ...(collapsed ? {opacity:1, pointerEvents:'auto', width:'auto'} : {})
+          }}>
             {/* EstimateBlock — always visible on step 2, even when preview is collapsed */}
             {step === 2 && (
               <EstimateBlock
@@ -337,14 +381,6 @@ function EditorBottomBar({ step, setStep, onSubmit, submitState, noApproval, can
            style={{opacity: step===1 ? 0.4 : 1, pointerEvents: step===1 ? 'none' : 'auto'}}>
         <Icon name="ArrowLeft" size={13}/> Previous
       </Btn>
-      <div className="editor-dots" style={{margin:'0 auto'}}>
-        {[1,2,3,4,5].map(n => (
-          <div key={n}
-               className={"editor-dot " + (n===step?'active':(n<step?'past':''))}
-               onClick={()=>setStep(n)}
-               title={`Step ${n}`}/>
-        ))}
-      </div>
       <div className="row gap-8" style={{marginLeft:'auto'}}>
         <Btn kind="ghost">Save as Draft</Btn>
         {step === 5 ? (

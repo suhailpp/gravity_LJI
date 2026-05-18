@@ -833,7 +833,7 @@ input, textarea, select { font: inherit; color: inherit; }
 /* step indicator */
 .steps {
   display:flex; align-items:stretch;
-  background: var(--bg-surface);
+  background: transparent;
   border: 1px solid var(--border-default);
   border-radius: 12px;
   overflow: hidden;
@@ -846,11 +846,11 @@ input, textarea, select { font: inherit; color: inherit; }
   position: relative;
 }
 .step:last-child { border-right: none; }
-.step:hover { background: var(--bg-elevated); }
+.step:hover { background: rgba(255, 255, 255, 0.02); }
 .step .sn { font-family: 'Sora', sans-serif; font-weight: 600; font-size: 13px; color: var(--text-secondary); }
 .step .snme { font-size: 13px; font-weight: 500; margin-top: 2px; color: var(--text-primary); }
 .step .sfrac { font-size: 11px; color: var(--text-muted); margin-top: 2px;}
-.step.active { background: var(--bg-elevated);}
+.step.active { background: transparent;}
 .step.active::after { content:''; position:absolute; left: 12px; right: 12px; bottom: 0; height: 2px; background: var(--accent-gold);}
 .step.active .sn { color: var(--accent-gold); }
 
@@ -1918,6 +1918,7 @@ input, textarea, select { font: inherit; color: inherit; }
   color: var(--text-primary);
   position: relative; z-index: 2;
   margin: 0 0 10px;
+  padding-right: 48px;
 }
 .dash-ref-insight .ic-body {
   font: 400 12px/1.4 'Manrope', sans-serif;
@@ -1938,11 +1939,10 @@ input, textarea, select { font: inherit; color: inherit; }
 }
 .dash-ref-insight .ic-watermark {
   position: absolute;
-  right: -8px; bottom: -20px;
-  font: 200 104px/0.85 'Manrope', sans-serif;
+  right: 4px; bottom: 4px;
+  font: 200 88px/0.85 'Manrope', sans-serif;
   letter-spacing: -0.04em;
-  color: var(--accent-red);
-  opacity: 0.14;
+  color: rgba(255, 255, 255, 0.06);
   pointer-events: none; user-select: none;
   z-index: 0;
   font-variant-numeric: tabular-nums;

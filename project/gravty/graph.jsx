@@ -295,10 +295,6 @@ function RelationshipGraph({
           style={{fontSize:12, padding:'4px 10px', background:'var(--bg-elevated)', border:'1px solid var(--border-default)', borderRadius:4, cursor:'pointer', fontFamily:'DM Sans, sans-serif', color: labelsOn ? 'var(--text-primary)' : 'var(--text-muted)', opacity: labelsOn ? 1 : 0.5, transition:'opacity .15s'}}
           onClick={() => setLabelsOn(v => !v)}
         >Labels</button>
-        <button
-          style={{fontSize:12, padding:'4px 10px', background:'var(--bg-elevated)', border:'1px solid var(--border-default)', borderRadius:4, cursor:'pointer', fontFamily:'DM Sans, sans-serif', color: legendOn ? 'var(--text-primary)' : 'var(--text-muted)', opacity: legendOn ? 1 : 0.5, transition:'opacity .15s'}}
-          onClick={() => setLegendOn(v => !v)}
-        >Legend</button>
       </div>
 
       {/* Reset Layout button */}
@@ -309,8 +305,8 @@ function RelationshipGraph({
         >⟳ Reset Layout</button>
       )}
 
-      {/* Status legend — bottom-left corner */}
-      {showLegend && legendOn && (
+      {/* Status legend — bottom-left corner, always visible (no toggle) */}
+      {showLegend && (
         <div style={{position:'absolute', bottom:10, left:12, display:'flex', flexWrap:'wrap', gap:'4px 12px', alignItems:'center', fontSize:11, color:'var(--text-secondary)', zIndex:5, background:'rgba(10,12,16,0.72)', padding:'5px 10px', borderRadius:6}}>
           {[{c:'#2DD4A0',l:'Live'},{c:'#4A90D9',l:'Scheduled'},{c:'#F59E0B',l:'In Review'},{c:'#4A5568',l:'Draft'},{c:'#F26B6B',l:'Paused'}].map(({c,l}) => (
             <span key={l} style={{display:'flex', alignItems:'center', gap:4}}>
