@@ -180,7 +180,7 @@ function Dashboard({ goTo, openAi, openDrawer }) {
         {/* GREETING ─────────────────────────────────── */}
         <div className="dash-ref-greet">
           <h1>Good morning, <em>Priya</em></h1>
-          <div className="sub">Tuesday · 14 May 2024 · Emirates Skywards · UAE Region</div>
+          <div className="sub">Emirates Skywards · UAE Region</div>
         </div>
 
         {/* PROGRAM HEALTH — full-width banner above attention strip ─── */}
