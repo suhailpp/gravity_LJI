@@ -93,7 +93,7 @@ function App() {
 
       {/* Dev nav bar */}
       <div className="dev-bar">
-        <div className="lbl">[ Wireframe Navigator ]</div>
+        <div className="lbl">[ Prototype Navigator ]</div>
         <div className="pills">
           {[
             ['dashboard','Dashboard'],
